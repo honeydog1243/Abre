@@ -19,13 +19,13 @@
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 
 	$cloudsetting=constant("USE_GOOGLE_CLOUD");
 	if ($cloudsetting=="true") 
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 	
-
 	//Check for feed image
 	if($image != ""){
 
@@ -36,12 +36,9 @@
 			
 		//Determine if Custom or Feed Post
 		if ($type=="custom"){
-			
-			//$filename = $portal_path_root . "/../$portal_private_root/stream/cache/images/" .$image;
 			$cloud_file = "private_html/stream/cache/images/$image";
 			if ($bucket->object($cloud_file)->exists()){
-
-				$fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
+				$fileExtension = pathinfo($image, PATHINFO_EXTENSION);
 				$image = $portal_root."/modules/stream/stream_serve_image.php?file=$cloud_file&ext=$fileExtension";
 			}
 			else
@@ -55,24 +52,30 @@
 			$url = parse_url($image);
 			if($url['scheme'] == 'https' xor $url['scheme'] == 'http'){
 	
-				//Get the name and sanatize the file name
+				//Get the name and sanitize the file name
 				$fileExtension = pathinfo($image, PATHINFO_EXTENSION);
 				$fileExtension = substr($fileExtension, 0, 3);
 				if($fileExtension == "jpe"){ $fileExtension="jpeg"; }
 				$imagefile = $date."_rss.$fileExtension";
-				//$filename = $portal_path_root . "/../$portal_private_root/stream/cache/images/$imagefile";
 
 				$cloud_file = "private_html/stream/cache/images/$imagefile";
 
+				$query = "SELECT COUNT(*) FROM streams_cache WHERE link = '$imagefile'";
+				$dbreturn = $db->query($query);
+				$resultrow = $dbreturn->fetch_assoc();
+				$stream_exists = $resultrow["COUNT(*)"];
+
 				//If it already saved, read from local server
-				if ($bucket->object($cloud_file)->exists()){
-
-					$image = $portal_root."/modules/stream/stream_serve_image.php?file=$cloud_file&ext=$fileExtension";
-
+				// Not using bucket exists for performance reasons
+				//if ($bucket->object($cloud_file)->exists()){
+				if ($stream_exists > 0) {
+					$image = $portal_root."/modules/stream/stream_serve_image.php?file=$cloud_file&image=$imagefile&ext=$fileExtension";
+					/*
 					$info = $bucket->object($cloud_file)->info();
 					if ($info['size'] < 1000) {
 						$image = "";						
 					}
+					*/	
 				}else{
 					//Check for 404 and 403 errors
 					$file_headers = @get_headers($image);
@@ -102,22 +105,27 @@
 								]
 							];
 
+							//Resize image
+							$picture = ResizeGCImage($picture, "1000", "90");
+
 							$object = $bucket->upload(
 								$picture,
 								$options
 							);
-
-							//Resize image
-							//ResizeImage($local_file, "1000", "90");
-													
+																				
+							$stmt = $db->stmt_init();
+							$sql = "INSERT INTO streams_cache (link) VALUES (?)";
+							$stmt->prepare($sql);
+							$stmt->bind_param("s", $imagefile);
+							$stmt->execute();
+							$stmt->close();						
+					
 						}else{
 							$image = "";
 						}
 					}
 				}
-			}
-			
+			}			
 		}
 	}
-
 ?>
