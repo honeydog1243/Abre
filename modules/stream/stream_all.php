@@ -173,6 +173,7 @@
 		$excerpt = str_replace('—',"-",$excerpt);
 		$excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
 		if($excerpt == ""){ $excerpt = $title; }
+
 		$linkraw = $feeds[$cardcountloop]['link'];
 		$image = $feeds[$cardcountloop]['image'];
 		$feedtitle = $feeds[$cardcountloop]['feedtitle'];
@@ -319,6 +320,11 @@
 			$(".modal-content #streamExcerptDisplay").html('');
 
 			var type = $(this).data('type');
+			if(type == "custom"){
+				$("#readStreamTitle").text("Announcement");
+			}else{
+				$("#readStreamTitle").text("News");
+			}
 			var Stream_Title = $(this).data('title');
 			$(".modal-content #streamTitle").text(Stream_Title);
 			$(".modal-content #streamTitleValue").val(Stream_Title);
@@ -375,6 +381,11 @@
 			$(".modal-content #streamExcerptDisplay").html('');
 
 			var type = $(this).data('type');
+			if(type == "custom"){
+				$("#readStreamTitle").text("Announcement");
+			}else{
+				$("#readStreamTitle").text("News");
+			}
 			var Stream_Title = $(this).data('title');
 			$(".modal-content #streamTitle").text(Stream_Title);
 			$(".modal-content #streamTitleValue").val(Stream_Title);
