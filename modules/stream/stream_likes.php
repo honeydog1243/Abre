@@ -48,7 +48,18 @@
 			$linkescaped = htmlspecialchars($value['url'], ENT_QUOTES);
 			$creationtime = $value['creationtime'];
 			$creationtime = date('F jS, Y',strtotime($creationtime));
+
+			$rawexcerpt = htmlspecialchars($value['excerpt'], ENT_QUOTES);
 			$excerpt = htmlspecialchars($value['excerpt'], ENT_QUOTES);
+			$excerpt = str_replace("<p>", " ", $excerpt);
+			$excerpt = strip_tags(html_entity_decode($excerpt));
+			$excerpt = preg_replace('/(\.)([[:alpha:]]{2,})/', '$1 $2', $excerpt);
+			$excerpt = str_replace("'",'"',$excerpt);
+			$excerpt = str_replace('"',"'",$excerpt);
+			$excerpt = str_replace('’',"'",$excerpt);
+			$excerpt = str_replace('—',"-",$excerpt);
+			$excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
+			if($excerpt == ""){ $excerpt = $title; }
 			$counter++;
 
 			$type = '';
@@ -74,7 +85,7 @@
 
 				//Title
 				echo "<div class='cardtitle' style='height:60px; padding:5px 16px 0 16px;'>";
-					echo "<div class='mdl-card__title-text ellipsis-multiline modal-readstream pointer' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='font-weight:700; font-size:20px; line-height:24px;'>$titlewithoutlongwords</div>";
+					echo "<div class='mdl-card__title-text ellipsis-multiline modal-readstream pointer' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='font-weight:700; font-size:20px; line-height:24px;'>$titlewithoutlongwords</div>";
 				echo "</div>";
 
 				//Date
@@ -82,7 +93,7 @@
 
 				//Card Image
 				if($image != ""){
-					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand modal-readstream pointer' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url($image);'></div>";
+					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand modal-readstream pointer' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url($image);'></div>";
 				}
 				else
 				{
@@ -98,7 +109,7 @@
 						$body = $excerpt;
 					}
 
-					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand valign-wrapper modal-readstream pointer' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url(/core/images/abre/abre_pattern.png); background-color: ".getSiteColor()." !important; overflow:hidden;'>";
+					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand valign-wrapper modal-readstream pointer' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url(/core/images/abre/abre_pattern.png); background-color: ".getSiteColor()." !important; overflow:hidden;'>";
 						echo "<span class='wrap-links' style='width:100%; color:#fff; padding:32px; font-size:18px; line-height:normal; font-weight:700; text-align:center;'>$body</span>";
 					echo "</div>";
 
@@ -108,7 +119,7 @@
 				echo "<div class='mdl-card__actions'>";
 
 					//Read Button
-					echo "<a class='mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect modal-readstream' data-commenticonid='comment_$counter' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='color: ".getSiteColor()."'>Read</a>";
+					echo "<a class='mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect modal-readstream' data-commenticonid='comment_$counter' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='color: ".getSiteColor()."'>Read</a>";
 
 					//Share, Likes, Comments for Staff Only
 					if($_SESSION['usertype'] == 'staff'){
@@ -122,20 +133,20 @@
 
 						//Likes
 						if($num_rows_like == 0){
-							echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$excerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' title='Like' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
+							echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$rawexcerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' title='Like' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
 						}else{
 							if($num_rows_like_current_user == 0){
-								echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$excerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
+								echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$rawexcerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
 							}else{
-								echo "<a class='material-icons mdl-color-text--red likeicon' data-title='$titleencoded' data-excerpt='$excerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--red' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
+								echo "<a class='material-icons mdl-color-text--red likeicon' data-title='$titleencoded' data-excerpt='$rawexcerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--red' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
 							}
 						}
 
 						//Comments
 						if($num_rows_comment == 0){
-							echo "<a class='material-icons mdl-color-text--grey-600 modal-addstreamcomment commenticon' data-commenticonid='comment_$counter' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a><span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color:grey'>$num_rows_comment</span>";
+							echo "<a class='material-icons mdl-color-text--grey-600 modal-addstreamcomment commenticon' data-commenticonid='comment_$counter' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a><span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color:grey'>$num_rows_comment</span>";
 						}else{
-							echo "<a class='material-icons modal-addstreamcomment commenticon' style='color: ".getSiteColor().";' data-commenticonid='comment_$counter' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a> <span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color: ".getSiteColor()."'>$num_rows_comment</span>";
+							echo "<a class='material-icons modal-addstreamcomment commenticon' style='color: ".getSiteColor().";' data-commenticonid='comment_$counter' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a> <span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color: ".getSiteColor()."'>$num_rows_comment</span>";
 						}
 					}
 
@@ -177,7 +188,18 @@
 			$linkescaped = htmlspecialchars($value['url'], ENT_QUOTES);
 			$creationtime = $value['creationtime'];
 			$creationtime = date('F jS, Y',strtotime($creationtime));
+
+			$rawexcerpt = htmlspecialchars($value['excerpt'], ENT_QUOTES);
 			$excerpt = htmlspecialchars($value['excerpt'], ENT_QUOTES);
+			$excerpt = str_replace("<p>", " ", $excerpt);
+			$excerpt = strip_tags(html_entity_decode($excerpt));
+			$excerpt = preg_replace('/(\.)([[:alpha:]]{2,})/', '$1 $2', $excerpt);
+			$excerpt = str_replace("'",'"',$excerpt);
+			$excerpt = str_replace('"',"'",$excerpt);
+			$excerpt = str_replace('’',"'",$excerpt);
+			$excerpt = str_replace('—',"-",$excerpt);
+			$excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
+			if($excerpt == ""){ $excerpt = $title; }
 			$counter++;
 
 			$type = '';
@@ -207,7 +229,7 @@
 
 				//Title
 				echo "<div class='cardtitle' style='height:60px; padding:5px 16px 0 16px;'>";
-					echo "<div class='mdl-card__title-text ellipsis-multiline modal-readstream pointer' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='font-weight:700; font-size:20px; line-height:24px;'>$titlewithoutlongwords</div>";
+					echo "<div class='mdl-card__title-text ellipsis-multiline modal-readstream pointer' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='font-weight:700; font-size:20px; line-height:24px;'>$titlewithoutlongwords</div>";
 				echo "</div>";
 
 				//Date
@@ -215,7 +237,7 @@
 
 				//Card Image
 				if($image != ""){
-					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand modal-readstream pointer' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url($image);'></div>";
+					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand modal-readstream pointer' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url($image);'></div>";
 				}
 				else
 				{
@@ -231,7 +253,7 @@
 						$body = $excerpt;
 					}
 
-					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand valign-wrapper modal-readstream pointer' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url(/core/images/abre/abre_pattern.png); background-color: ".getSiteColor()." !important; overflow:hidden;'>";
+					echo "<div class='mdl-card__media mdl-color--grey-100 mdl-card--expand valign-wrapper modal-readstream pointer' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='height:200px; background-image: url(/core/images/abre/abre_pattern.png); background-color: ".getSiteColor()." !important; overflow:hidden;'>";
 						echo "<span class='wrap-links' style='width:100%; color:#fff; padding:32px; font-size:18px; line-height:normal; font-weight:700; text-align:center;'>$body</span>";
 					echo "</div>";
 
@@ -241,7 +263,7 @@
 				echo "<div class='mdl-card__actions'>";
 
 					//Read Button
-					echo "<a class='mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect modal-readstream' data-commenticonid='comment_$counter' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='color: ".getSiteColor()."'>Read</a>";
+					echo "<a class='mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect modal-readstream' data-commenticonid='comment_$counter' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' style='color: ".getSiteColor()."'>Read</a>";
 
 					//Share, Likes, Comments for Staff Only
 					if($_SESSION['usertype'] == 'staff'){
@@ -260,20 +282,20 @@
 						$num_rows_like_current_user = $resultrow["COUNT(*)"];
 
 						if($num_rows_like == 0){
-							echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$excerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' title='Like' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
+							echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$rawexcerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' title='Like' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
 						}else{
 							if($num_rows_like_current_user == 0){
-								echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$excerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
+								echo "<a class='material-icons mdl-color-text--grey-600 likeicon' data-title='$titleencoded' data-excerpt='$rawexcerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--grey-600' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
 							}else{
-								echo "<a class='material-icons mdl-color-text--red likeicon' data-title='$titleencoded' data-excerpt='$excerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--red' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
+								echo "<a class='material-icons mdl-color-text--red likeicon' data-title='$titleencoded' data-excerpt='$rawexcerpt' data-url='$linkbase' data-image='$imagebase' data-type='$type' href='#'>favorite</a> <span class='mdl-color-text--red' style='font-size:12px; font-weight:600; width:30px; padding-left:5px;'>$num_rows_like</span>";
 							}
 						}
 
 						//Comments
 						if($num_rows_comment == 0){
-							echo "<a class='material-icons mdl-color-text--grey-600 modal-addstreamcomment commenticon' data-commenticonid='comment_$counter' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a><span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color:grey'>$num_rows_comment</span>";
+							echo "<a class='material-icons mdl-color-text--grey-600 modal-addstreamcomment commenticon' data-commenticonid='comment_$counter' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a><span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color:grey'>$num_rows_comment</span>";
 						}else{
-							echo "<a class='material-icons modal-addstreamcomment commenticon' style='color: ".getSiteColor().";' data-commenticonid='comment_$counter' data-excerpt='$excerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a> <span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color: ".getSiteColor()."'>$num_rows_comment</span>";
+							echo "<a class='material-icons modal-addstreamcomment commenticon' style='color: ".getSiteColor().";' data-commenticonid='comment_$counter' data-excerpt='$rawexcerpt' data-image='$imagebase' data-redirect='likes' data-title='$titleencoded' data-url='$linkbase' data-type='$type' title='Add a comment' href='#addstreamcomment'>insert_comment</a> <span id='comment_$counter' style='font-size:12px; font-weight:600; width:30px; padding-left:5px; color: ".getSiteColor()."'>$num_rows_comment</span>";
 						}
 					}
 

@@ -135,7 +135,17 @@
     $title = str_replace('—',"-",$title);
 
     //Excerpt
-    $excerpt = $feeds[$cardcountloop]['excerpt'];
+    $rawexcerpt = $feeds[$cardcountloop]['excerpt'];
+		$excerpt = $feeds[$cardcountloop]['excerpt'];
+		$excerpt = str_replace("<p>", " ", $excerpt);
+		$excerpt = strip_tags(html_entity_decode($excerpt));
+		$excerpt = preg_replace('/(\.)([[:alpha:]]{2,})/', '$1 $2', $excerpt);
+		$excerpt = str_replace("'",'"',$excerpt);
+		$excerpt = str_replace('"',"'",$excerpt);
+		$excerpt = str_replace('’',"'",$excerpt);
+		$excerpt = str_replace('—',"-",$excerpt);
+		$excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
+		if($excerpt == ""){ $excerpt = $title; }
 
     $linkraw = $feeds[$cardcountloop]['link'];
     $image = $feeds[$cardcountloop]['image'];
