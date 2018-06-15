@@ -166,10 +166,14 @@
 		}
 
 		//Find what streams to display
-		$query = "SELECT title, image, url, creationtime, excerpt FROM streams_comments WHERE user = '".$_SESSION['useremail']."' AND comment != '' ORDER BY url DESC LIMIT $StreamStartResult, $StreamEndResult";
+		$query = "SELECT id, title, image, url, creationtime, excerpt FROM streams_comments WHERE user = '".$_SESSION['useremail']."' AND comment != '' ORDER BY url DESC LIMIT $StreamStartResult, $StreamEndResult";
 		$dbreturn = databasequery($query);
 		$counter = 0;
 		$lastUrl = NULL;
+		foreach($dbreturn as $key => $element){
+			$data[$key] = $element['id'];
+		}
+		array_multisort($data, SORT_DESC, $dbreturn);
 		foreach($dbreturn as $value){
 			$link = mysqli_real_escape_string($db, $value['url']);
 			if($lastUrl == $link && $link != ""){
