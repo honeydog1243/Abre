@@ -111,7 +111,7 @@
 	    }
 
 			//Create required database tables
-		$sql = "CREATE TABLE `users` (`id` int(11) NOT NULL,`email` text NOT NULL,`superadmin` int(11) NOT NULL DEFAULT '0',`admin` int(11) NOT NULL DEFAULT '0',`refresh_token` text NOT NULL,`cookie_token` text NOT NULL, `auth_service` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1";
+		$sql = "CREATE TABLE `users` (`id` int(11) NOT NULL,`email` text NOT NULL,`superadmin` int(11) NOT NULL DEFAULT '0',`admin` int(11) NOT NULL DEFAULT '0',`refresh_token` text NOT NULL,`cookie_token` text NOT NULL, `auth_service` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
 		$sql .= "ALTER TABLE `users` ADD PRIMARY KEY (`id`);";
 		$sql .= "ALTER TABLE `users` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
 
@@ -190,7 +190,7 @@
 		fwrite($myfile, $txt);
 		$txt = "if(!defined('GC_BUCKET')){ define('GC_BUCKET', NULL); }";
 		fwrite($myfile, $txt);
-		
+
 		//Write Google Console client ID
 		$txt = "\n";
 		fwrite($myfile, $txt);

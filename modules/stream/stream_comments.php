@@ -173,7 +173,9 @@
 		foreach($dbreturn as $key => $element){
 			$data[$key] = $element['id'];
 		}
-		array_multisort($data, SORT_DESC, $dbreturn);
+		if(!empty($dbreturn)){
+			array_multisort($data, SORT_DESC, $dbreturn);
+		}
 		foreach($dbreturn as $value){
 			$link = mysqli_real_escape_string($db, $value['url']);
 			if($lastUrl == $link && $link != ""){
