@@ -163,6 +163,7 @@
 		$title = str_replace('"',"'",$title);
 		$title = str_replace('’',"'",$title);
 		$title = str_replace('—',"-",$title);
+
 		$excerpt = $feeds[$cardcountloop]['excerpt'];
 		$excerpt = str_replace("<p>", " ", $excerpt);
 		$excerpt = strip_tags(html_entity_decode($excerpt));
@@ -173,6 +174,8 @@
 		$excerpt = str_replace('—',"-",$excerpt);
 		$excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
 		if($excerpt == ""){ $excerpt = $title; }
+		$rawexcerpt = $excerpt;
+
 		$linkraw = $feeds[$cardcountloop]['link'];
 		$image = $feeds[$cardcountloop]['image'];
 		$feedtitle = $feeds[$cardcountloop]['feedtitle'];
@@ -319,6 +322,11 @@
 			$(".modal-content #streamExcerptDisplay").html('');
 
 			var type = $(this).data('type');
+			if(type == "custom"){
+				$("#readStreamTitle").text("Announcement");
+			}else{
+				$("#readStreamTitle").text("News");
+			}
 			var Stream_Title = $(this).data('title');
 			$(".modal-content #streamTitle").text(Stream_Title);
 			$(".modal-content #streamTitleValue").val(Stream_Title);
@@ -375,6 +383,11 @@
 			$(".modal-content #streamExcerptDisplay").html('');
 
 			var type = $(this).data('type');
+			if(type == "custom"){
+				$("#readStreamTitle").text("Announcement");
+			}else{
+				$("#readStreamTitle").text("News");
+			}
 			var Stream_Title = $(this).data('title');
 			$(".modal-content #streamTitle").text(Stream_Title);
 			$(".modal-content #streamTitleValue").val(Stream_Title);

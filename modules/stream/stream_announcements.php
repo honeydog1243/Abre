@@ -135,16 +135,18 @@
     $title = str_replace('—',"-",$title);
 
     //Excerpt
-    $excerpt = $feeds[$cardcountloop]['excerpt'];
-    $excerpt = str_replace("<p>", " ", $excerpt);
-    $excerpt = strip_tags(html_entity_decode($excerpt));
-    $excerpt = preg_replace('/(\.)([[:alpha:]]{2,})/', '$1 $2', $excerpt);
-    $excerpt = str_replace("'",'"',$excerpt);
-    $excerpt = str_replace('"',"'",$excerpt);
-    $excerpt = str_replace('’',"'",$excerpt);
-    $excerpt = str_replace('—',"-",$excerpt);
-    $excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
-    if($excerpt == ""){ $excerpt = $title; }
+    $rawexcerpt = $feeds[$cardcountloop]['excerpt'];
+		$excerpt = $feeds[$cardcountloop]['excerpt'];
+		$excerpt = str_replace("<p>", " ", $excerpt);
+		$excerpt = strip_tags(html_entity_decode($excerpt));
+		$excerpt = preg_replace('/(\.)([[:alpha:]]{2,})/', '$1 $2', $excerpt);
+		$excerpt = str_replace("'",'"',$excerpt);
+		$excerpt = str_replace('"',"'",$excerpt);
+		$excerpt = str_replace('’',"'",$excerpt);
+		$excerpt = str_replace('—',"-",$excerpt);
+		$excerpt = filter_var($excerpt, FILTER_SANITIZE_STRING);
+		if($excerpt == ""){ $excerpt = $title; }
+
     $linkraw = $feeds[$cardcountloop]['link'];
     $image = $feeds[$cardcountloop]['image'];
     $feedtitle = $feeds[$cardcountloop]['feedtitle'];
@@ -196,7 +198,7 @@
 
 	if($cardcount == 0 && $StreamStartResult == 0){
 		echo "<div class='row center-align'>";
-			echo "<div class='widget' style='padding:30px; text-align:center; width:100%;'><span style='font-size: 22px; font-weight:700'>Welcome to Your Announcements</span><br><p style='font-size:16px; margin:20px 0 0 0;'>Announcements from administrators will be displayed here.<br></p></div>";
+			echo "<div class='widget' style='padding:30px; text-align:center; width:100%;'><span style='font-size: 22px; font-weight:700'>Welcome to Your Announcements</span><br><p style='font-size:16px; margin:20px 0 0 0;'>Announcements related to you will be displayed here.<br></p></div>";
 			echo "<a class='mdl-button mdl-js-button mdl-js-ripple-effect' style='background-color:".getSiteColor()."; color:#fff;' href='#profile'>View Available Streams</a>";
 		echo "</div>";
 	}
@@ -273,6 +275,11 @@
 			$(".modal-content #streamExcerptDisplay").html('');
 
 			var type = $(this).data('type');
+			if(type == "custom"){
+				$("#readStreamTitle").text("Announcement");
+			}else{
+				$("#readStreamTitle").text("News");
+			}
 			var Stream_Title = $(this).data('title');
 			$(".modal-content #streamTitle").text(Stream_Title);
 			$(".modal-content #streamTitleValue").val(Stream_Title);
@@ -329,6 +336,11 @@
 			$(".modal-content #streamExcerptDisplay").html('');
 
 			var type = $(this).data('type');
+			if(type == "custom"){
+				$("#readStreamTitle").text("Announcement");
+			}else{
+				$("#readStreamTitle").text("News");
+			}
 			var Stream_Title = $(this).data('title');
 			$(".modal-content #streamTitle").text(Stream_Title);
 			$(".modal-content #streamTitleValue").val(Stream_Title);
