@@ -1034,9 +1034,43 @@
 		}
 	}
 
+	//Resize Google Cloud Image
+	function ResizeGCImage($image, $maxsize, $quality){
+
+		$image = 'data://application/octet-stream;base64,' . base64_encode($image);
+
+		$mime = getimagesize($image);
+		$width = $mime[0]; 
+
+		if ($width < 1000) { 
+			$data = explode( ',', $image );
+			$image = base64_decode( $data[ 1 ]);	
+			return $image;
+		}
+		if($mime['mime'] == 'image/jpeg'){ $imagecreated = imagecreatefromjpeg($image); }
+		if($mime['mime'] == 'image/jpg'){ $imagecreated = imagecreatefromjpeg($image); }
+		if($mime['mime'] == 'image/png'){ $imagecreated = imagecreatefrompng($image); }
+		if($mime['mime'] == 'image/gif'){ $imagecreated = imagecreatefromgif($image); }
+		$imageScaled = imagescale($imagecreated, $maxsize);
+	
+		ob_start ();
+		if($mime['mime'] == 'image/jpeg'){ imagejpeg($imageScaled, null, $quality); }
+		if($mime['mime'] == 'image/jpg'){ imagejpeg($imageScaled, null, $quality); }
+		if($mime['mime'] == 'image/png'){ imagepng($imageScaled, null, "8"); }
+		if($mime['mime'] == 'image/gif'){ imagegif($imageScaled, null, $quality); }
+		$image = ob_get_contents ();
+		ob_end_clean ();
+
+		imagedestroy($imagecreated);
+
+		return $image;
+	}
+
 	//Resize Image
 	function ResizeImage($image, $maxsize, $quality){
 		$mime = getimagesize($image);
+		$width = $mime[0]; 
+		if ($width < 1000) return;
 		if($mime['mime'] == 'image/jpeg'){ $imagecreated = imagecreatefromjpeg($image); }
 		if($mime['mime'] == 'image/jpg'){ $imagecreated = imagecreatefromjpeg($image); }
 		if($mime['mime'] == 'image/png'){ $imagecreated = imagecreatefrompng($image); }
