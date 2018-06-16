@@ -270,6 +270,8 @@
    		</form>
  	</div>
 
+<script src='core/tinymce/js/tinymce/tinymce.min.js'></script>
+
 <script>
 
 	$(function(){
@@ -280,7 +282,7 @@
 		//Start TinyMCE
 		tinymce.init({
 			selector: '.wysiwyg', branding: false, height:200, menubar:false, resize: false, statusbar: false, autoresize_min_height: 200, autoresize_max_height: 400,
-			content_css : "/core/css/tinymce.0.0.5.css?" + new Date().getTime(),
+			content_css : "/core/css/tinymce.0.0.6.css?" + new Date().getTime(),
 			oninit : "setPlainText",
 			plugins: 'paste print preview fullpage autolink fullscreen image link media template codesample charmap hr nonbreaking toc insertdatetime advlist lists textcolor imagetools contextmenu textpattern autoresize',
 			toolbar: 'bold italic underline link | numlist bullist | media | removeformat',

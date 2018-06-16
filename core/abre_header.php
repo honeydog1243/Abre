@@ -62,8 +62,8 @@
 				<link rel='stylesheet' href='core/css/abre.1.5.3.css'>
 				<link rel='stylesheet' href='core/css/animate.min.css'>
 				<link rel='stylesheet' href='core/css/timepicker.min.css'>
-				<link rel='stylesheet' href='core/css/quill.snow.1.1.3.css'>
 				<link rel="stylesheet" href='core/css/spectrum.0.0.1.css'>
+				<link rel="stylesheet" href='core/css/tinymce.0.0.6.css'>
 				<link rel="stylesheet" href='modules/profile/css/calendar.css'>
 				<link rel="stylesheet" href='core/css/style.php'>
 
@@ -74,7 +74,6 @@
 				<script src='core/js/routie.min.3.2.js'></script>
 				<script src='core/js/jquery.tablesorter.min.js'></script>
 				<script src='core/js/jquery.timepicker.min.js'></script>
-				<script src='core/js/quill.min.1.1.3.js'></script>
 				<script src='core/js/spectrum.js'></script>
 				<script src='modules/profile/js/jquery-ui.multidatespicker.1.6.4.js'></script>
 				<script src='https://www.gstatic.com/charts/loader.js'></script>
