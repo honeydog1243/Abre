@@ -29,6 +29,29 @@
 	$stmt->execute();
 	$stmt->close();
 
+	//delete old image
+	$sql = "SELECT Image FROM curriculum_course WHERE ID = $librarycourseid";
+	$query = $db->query($sql);
+	$row = $query->fetch_assoc();
+	$existingImage = $row["Image"];
+	if($cloudsetting == "true"){
+		$storage = new StorageClient([
+			'projectId' => constant("GC_PROJECT")
+		]);
+		$bucket = $storage->bucket(constant("GC_BUCKET"));
+
+		$uploaddir = "private_html/Abre-Curriculum/images/" . $existingImage;
+
+		//Delete old image
+		$postimage = $uploaddir;
+		$object = $bucket->object($postimage);
+		$object->delete();
+	}else{
+		if(file_exists($portal_path_root."/../$portal_private_root/Abre-Curriculum/images/".$existingImage)){
+			unlink($portal_path_root."/../$portal_private_root/Abre-Curriculum/images/".$existingImage);
+		}
+	}
+
 	//Delete course
 	$stmt = $db->stmt_init();
 	$sql = "DELETE FROM curriculum_course WHERE id = '$librarycourseid' LIMIT 1";
