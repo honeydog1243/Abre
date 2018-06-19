@@ -249,7 +249,7 @@
   			<div class="row" id="search">
   				<div class="input-field col s12">
   					<input id="searchquery" type="text" autocomplete="off">
-  					<label for="searchquery" class="active">Search</label>
+  					<label for="searchquery" class="active">Search by Passage Title (Example: Bubble, Bubble, Spittlebug)</label>
   				</div>
   			</div>
 
