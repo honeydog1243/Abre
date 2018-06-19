@@ -50,6 +50,7 @@
 			if($value['size'] > 0){
 				if($value['size'] < 1000000){
 					$fileextension = pathinfo($value['name'], PATHINFO_EXTENSION);
+					$fileNameNoExtension = pathinfo($value['name'], PATHINFO_FILENAME);
 					$hashedFileName = sha1($value['name']);
 					$file_name = $hashedFileName.".".$fileextension;
 
