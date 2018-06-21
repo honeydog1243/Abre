@@ -57,7 +57,7 @@
 
 		}
 
-		if($returncount==0){ echo "No Assessment Details"; }
+		if($returncount==0){ echo "<div class='row' style='padding:56px; text-align:center; width:100%;'><span style='font-size: 22px; font-weight:700'>No Assessment Details</span><br><p style='font-size:16px; margin:20px 0 0 0;'>Details for this assessment could not be found.</p></div>"; }
 
 	}
 ?>
