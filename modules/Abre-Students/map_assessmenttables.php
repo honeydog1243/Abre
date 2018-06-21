@@ -23,7 +23,7 @@
 	require_once('functions.php');
 	require_once('permissions.php');
 
-	if($pagerestrictions == ""){
+	if($pagerestrictions == "" || $isParent){
 
 		$Student_ID = $_GET['StudentID'];
     $termName = $_GET['termName'];
