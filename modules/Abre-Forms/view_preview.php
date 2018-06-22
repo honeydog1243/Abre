@@ -183,7 +183,7 @@
 				enctype: 'multipart/form-data',
 				processData:false,
 				contentType: false,
-				data: formData,
+				data: formData
 			})
 			.done(function (response) {
 
