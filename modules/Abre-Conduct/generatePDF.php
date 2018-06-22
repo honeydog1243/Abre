@@ -3359,6 +3359,86 @@
 					echo $pdf->Output();
 				}
 			}
+			if($districtID == ""){
+				if($pdfOption == "Summary_Report"){
+					$pdf = new FPDF();
+					$pdf->SetTitle('Summary Report Document');
+					$pdf->AddPage();
+					$pdf->SetFont('Arial', 'B', 14);
+					$pdf->Cell(80);
+					$pdf->Cell(30, 10, 'SUMMARY REPORT',0,0,'C');
+					$pdf->Ln(7.5);
+					$pdf->SetFont('Arial', '', 12);
+					$pdf->Cell(80);
+					$pdf->Cell(30, 10,$Building,0,0,'C');
+					$pdf->Ln(5);
+					$pdf->Cell(80);
+					$pdf->Cell(30, 10, $street." ".$city." ".$state." ".$postalCode, 0, 0, 'C');
+					$pdf->Ln(15);
+					$pdf->SetFont('Arial', '', 10);
+					$pdf->Cell(0, 10, date("m/d/Y"));
+					$pdf->Ln(5);
+					$pdf->Cell(0, 10, "Student Name: ".$Student_FirstName." ".$Student_LastName);
+					$pdf->Ln(5);
+					$pdf->Cell(0, 10, "Student Grade: ".$grade);
+					$pdf->Ln(5);
+					$pdf->Cell(0, 10, "Parent Contact:");
+					$pdf->Ln(5);
+					if($Parent_FirstName != ""){
+						$pdf->Cell(0, 10, "$Parent_FirstName $Parent_LastName");
+						$pdf->Ln(5);
+						if($Parent_AddressLine1 != "No Address Found"){
+							$pdf->Cell(0, 10, "$Parent_AddressLine1, $Parent_City $Parent_State, $Parent_Zip");
+						}else{
+							$pdf->Cell(0, 10, $Parent_AddressLine1);
+						}
+						$pdf->Ln(5);
+						$pdf->Cell(0, 10, "$Parent_Phone1 | $Parent_Email1");
+					}
+					$pdf->Ln(15);
+					$pdf->SetFont('Arial', 'B', 12);
+					$pdf->Cell(0, 10, "OFFENSE");
+					$pdf->Ln(5);
+					$pdf->SetFont('Arial', '', 10);
+					$pdf->Cell(45, 10, "Date:");
+					$pdf->Cell(0, 10, $Incident_Date);
+					$pdf->Ln(7);
+					$pdf->Cell(45, 5, "Offense:");
+					$pdf->MultiCell(0,5, $Offence_Display);
+					$pdf->Cell(45, 5, "Description:");
+					$pdf->MultiCell(0, 5, $Description);
+					$pdf->Cell(45, 5, "Location:");
+					$pdf->Cell(0, 5, $Location);
+					$pdf->Ln(5);
+					$pdf->Cell(45, 5, "Code Violations:");
+					$pdf->Cell(0, 5, $Offence_Codes);
+					$pdf->Ln(15);
+					$pdf->SetFont('Arial', 'B', 12);
+					$pdf->Cell(0, 5, "CONSEQUENCES");
+					$pdf->Ln(5);
+					$pdf->SetFont('Arial', '', 10);
+					$pdf->Cell(45, 5, "Consequence:");
+					$pdf->MultiCell(0, 5, $Consequence);
+					$pdf->Cell(45, 5, "Serve Date:");
+					$pdf->Cell(0, 5, $Serve_Date);
+					$pdf->Ln(5);
+					$pdf->Cell(45, 5, "Thru Date:");
+					$pdf->Cell(0, 5, $Thru_Date);
+					$pdf->Ln(5);
+					$pdf->Cell(45, 5, "Duration:");
+					$pdf->Cell(0, 5, $Duration);
+					$pdf->Ln(25);
+					$pdf->Cell(50, 10, "__________________________________");
+					$pdf->Cell(40);
+					$pdf->Cell(50, 10, "________________________________________");
+					$pdf->Ln(5);
+					$pdf->SetFont('Arial', '', 10);
+					$pdf->Cell(50,10, "Administrator Signature");
+					$pdf->Cell(40);
+					$pdf->Cell(0,10, "Student Signature (acknowledges receipt of this notice)");
+					echo $pdf->Output();
+				}
+			}
 		}
 	}
 ?>
