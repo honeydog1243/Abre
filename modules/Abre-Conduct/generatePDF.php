@@ -97,7 +97,7 @@
 			}
 
 			//Get Student Contact Information
-      if($districtID == "HCSD"){
+      if($districtID == "HCSD" || $districtID == ""){
         $query2 = "SELECT FirstName, LastName, AddressLine1, City, State, Zip, Phone1, Email1 FROM Abre_ParentContacts WHERE StudentID = '$StudentID' LIMIT 1";
         $dbreturn3 = databasequery($query2);
         $Parent_Phone1 = "No Phone Number Found";
