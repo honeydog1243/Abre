@@ -450,6 +450,18 @@
 	$(function()
 	{
 
+		//Material Select
+		$('select').material_select();
+
+		//Start TinyMCE
+		tinymce.init({
+			selector: '.wysiwyg', branding: false, height:300, menubar:false, resize: false, statusbar: false, autoresize_min_height: 300, autoresize_max_height: 1000,
+			content_css : "/core/css/tinymce.0.0.6.css?" + new Date().getTime(),
+			oninit : "setPlainText",
+			plugins: 'paste print preview fullpage autolink fullscreen image link media template codesample charmap hr nonbreaking toc insertdatetime advlist lists textcolor imagetools contextmenu textpattern autoresize',
+			toolbar: 'bold italic underline link | alignleft aligncenter alignright | numlist bullist | media | removeformat print fullscreen',
+			image_advtab: true });
+
 		//Provide image upload on icon click
 		$(".customCurriculumImage").unbind().click(function(event){
 			event.preventDefault();
@@ -480,18 +492,6 @@
 				$("#sequentialDiv").hide();
 			}
 		});
-
-		//Material Select
-		$('select').material_select();
-
-		//Start TinyMCE
-		tinymce.init({
-			selector: '.wysiwyg', branding: false, height:300, menubar:false, resize: false, statusbar: false, autoresize_min_height: 300, autoresize_max_height: 1000,
-			content_css : "/core/css/tinymce.0.0.5.css?" + new Date().getTime(),
-			oninit : "setPlainText",
-			plugins: 'paste print preview fullpage autolink fullscreen image link media template codesample charmap hr nonbreaking toc insertdatetime advlist lists textcolor imagetools contextmenu textpattern autoresize',
-			toolbar: 'bold italic underline link | alignleft aligncenter alignright | numlist bullist | media | removeformat print fullscreen',
-			image_advtab: true });
 
 		//Date Picker
 		$('.topic_starttime').pickadate({ container: 'body', selectMonths: true, selectYears: 15 });
