@@ -33,6 +33,13 @@
   $authorFirstName = $resultrow['firstname'];
   $authorLastName = $resultrow['lastname'];
 
+	if(!isset($authorFirstName)){
+		$authorFirstName = "";
+	}
+	if(!isset($authorLastName)){
+		$authorLastName = "";	
+	}
+
   if($_POST['post_title'] != ""){
     $postTitle = $_POST['post_title'];
   }else{
