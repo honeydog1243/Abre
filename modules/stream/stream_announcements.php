@@ -135,7 +135,7 @@
     $title = str_replace('—',"-",$title);
 
     //Excerpt
-    $rawexcerpt = htmlspecialchars($value['excerpt'], ENT_QUOTES);
+    $rawexcerpt = htmlspecialchars($feeds[$cardcountloop]['excerpt'], ENT_QUOTES);
 		$excerpt = $feeds[$cardcountloop]['excerpt'];
 		$excerpt = str_replace("<p>", " ", $excerpt);
 		$excerpt = strip_tags(html_entity_decode($excerpt));
