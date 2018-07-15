@@ -21,25 +21,25 @@
 
 		if($_SESSION['usertype'] == "staff"){
 			echo "
-				'starter': function()
+				'connect': function()
 				{
 				    $('#navigation_top').hide();
 				    $('#content_holder').hide();
 				    $('#loader').show();
 				    $('#titletext').text('Starter');
 				    document.title = 'Starter';
-					$('#content_holder').load('modules/".basename(__DIR__)."/home.php', function() { init_page(); });
-					$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/modals.php' );
+					$('#content_holder').load('modules/".basename(__DIR__)."/ui/home.php', function() { init_page(); });
+					$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
 			  },
-				'starter/elements': function()
+				'connect/elements': function()
 				{
 						$('#navigation_top').hide();
 						$('#content_holder').hide();
 						$('#loader').show();
 						$('#titletext').text('Starter');
 						document.title = 'Starter';
-					$('#content_holder').load('modules/".basename(__DIR__)."/elements.php', function() { init_page(); });
-					$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/modals.php' );
+					$('#content_holder').load('modules/".basename(__DIR__)."/ui/elements.php', function() { init_page(); });
+					$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
 				},";
 		}
 ?>

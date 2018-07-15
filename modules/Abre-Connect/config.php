@@ -32,8 +32,8 @@
 	$pagetitle="Starter";
 	$description="A simple Hello World starter app template.";
 	$version="0.0.5";
-	$repo="abreio/Abre-Starter";
+	$repo="abreio/Abre-Connect";
 	$pageicon="code";
-	$pagepath="starter";
+	$pagepath="connect";
 	require_once('permissions.php');
 ?>
