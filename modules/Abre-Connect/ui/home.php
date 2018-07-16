@@ -23,18 +23,7 @@
 
 ?>
 
-<div class="row">
-  <div class="col s12" style="background-color: <?php echo getSiteColor(); ?>">
-    <ul id="connect-tabs" class="tabs" style="background-color: <?php echo getSiteColor(); ?>">
-      <li class="tab col s2"><a href="#home">Home</a></li>
-      <li class="tab col s2"><a href="#journals">Journals</a></li>
-    </ul>
-  </div>
-  <div id="home" class="col s12">home</div>
-  <div id="journals" class="col s12">journals</div>
-</div>
 
-<script>
-  // var instance = M.Tabs.init('#connect-tabs', {});
-  $(document).ready(() => $('#connect-tabs').tabs());
-</script>
+
+<div id="home" class="col s12">home</div>
+<div id="journals" class="col s12">journals</div>

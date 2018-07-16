@@ -19,27 +19,30 @@
     //Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 
-		if($_SESSION['usertype'] == "staff"){
-			echo "
-				'connect': function()
-				{
-				    $('#navigation_top').hide();
-				    $('#content_holder').hide();
-				    $('#loader').show();
-				    $('#titletext').text('Starter');
-				    document.title = 'Starter';
-					$('#content_holder').load('modules/".basename(__DIR__)."/ui/home.php', function() { init_page(); });
-					$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
-			  },
-				'connect/elements': function()
-				{
-						$('#navigation_top').hide();
-						$('#content_holder').hide();
-						$('#loader').show();
-						$('#titletext').text('Starter');
-						document.title = 'Starter';
-					$('#content_holder').load('modules/".basename(__DIR__)."/ui/elements.php', function() { init_page(); });
-					$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
-				},";
-		}
+  if($_SESSION['usertype'] == "staff"){
+    echo "
+      'connect': function()
+      {
+        $('#navigation_top').hide();
+        $('#content_holder').hide();
+        $('#loader').show();
+        $('#titletext').text('Connect');
+        document.title = 'Connect';
+        $('#content_holder').load('modules/".basename(__DIR__)."/ui/home.php', function() { init_page(); });
+        $( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
+        $('#navigation_top').load('modules/".basename(__DIR__)."/ui/menu.php', () => {
+          $('#navigation_top').show();
+        });
+      },
+      'connect/elements': function()
+      {
+        $('#navigation_top').hide();
+        $('#content_holder').hide();
+        $('#loader').show();
+        $('#titletext').text('Starter');
+        document.title = 'Starter';
+        $('#content_holder').load('modules/".basename(__DIR__)."/ui/elements.php', function() { init_page(); });
+        $( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
+      },";
+  }
 ?>
