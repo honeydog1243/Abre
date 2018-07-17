@@ -21,9 +21,30 @@
 	require(dirname(__FILE__) . '/../../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../../core/abre_functions.php');
 
+
+  $thisWeekJournals = ["City Council", "Jimmy Nuveen", "Uncategorized"];
 ?>
 
 
-
-<div id="home" class="col s12">home</div>
-<div id="journals" class="col s12">journals</div>
+<div class="container">
+  <div id="home" class="col s12">home</div>
+  <div id="journals" class="col s12">
+    <ul class="collection">
+      <?php
+        for($i = 0; $i < count($thisWeekJournals); $i++) {
+      ?>
+        <li class="collection-item avatar" 
+          style="width: auto; height: auto; border-radius: 0; ">
+        
+          <i class="material-icons circle">account_circle</i>
+          <span class="title"><?php echo $thisWeekJournals[$i] ?></span>
+          <div class="row">
+            <p class="truncate col s10">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</p>
+            <i class="material-icons col s1">attach_file</i>
+          </div>
+          <div class="secondary-content">Today</div>
+        </li>
+      <?php } ?>
+    </ul>  
+  </div>
+</div>
