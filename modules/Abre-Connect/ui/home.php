@@ -24,44 +24,62 @@
   class Journal {
     public $title;
     public $body;
+    public $lastUpdated;
   }
 
-  $thisWeekJournals = [];
+  $journals = [];
 
-  $query = "SELECT * FROM Abre_Connect_Journal";
+  $query = "SELECT * FROM Abre_Connect_Journal ORDER BY LastUpdated DESC";
   $dbreturn = $db->query($query);
   
   while($row = $dbreturn->fetch_assoc()) {
     $j =  new Journal();
-    $j->title = $row["title"];
-    $j->body = $row["body"];
-    $thisWeekJournals[] = $j;
+    $j->title = $row['Title'];
+    $j->body = $row['Body'];
+    $j->lastUpdated = new DateTime($row['LastUpdated']);
+    $journals[] = $j;
+  }
+
+  function formatDateTime($dt) {
+    $now = new DateTime('@'.time());
+    $diff = $dt->diff($now);
+
+    if($diff->days < 1) {
+      return 'Today';
+    } else if($diff->days < 2) {
+      return 'Yesterday';
+    } else if($diff->days < 7) {
+      return $dt->format('l');
+    } else {
+      return $dt->format('n/j/Y');
+    }
   }
 ?>
 
 
 <div class="container">
-  <div id="home" class="col s12">home</div>
+  <!-- <div id="home" class="col s12">home</div> -->
 
   <div id="journals" class="col s12">
-    <h6 class="grey-text text-darken-2">This Week</h6>
+    <h6 class="grey-text text-darken-2">Journals</h6>
     <ul class="collection">
       
       <?php
-        for($i = 0; $i < count($thisWeekJournals); $i++) {
-          $j = $thisWeekJournals[$i];
+        for($i = 0; $i < count($journals); $i++) {
+          $j = $journals[$i];
       ?>
 
         <li class="collection-item avatar" 
           style="width: auto; height: auto; border-radius: 0; ">
-        
+        <!-- above line is to override Abre's only style overload for .avatar -->
+
           <i class="material-icons circle">account_circle</i>
           <span class="title"><?php echo $j->title ?></span>
           <div class="row">
             <p class="truncate col s10"><?php echo $j->body ?></p>
             <i class="material-icons col s1">attach_file</i>
           </div>
-          <div class="secondary-content">Today</div>
+          <div class="secondary-content grey-text text-darken-1"><?php echo (formatDateTime($j->lastUpdated)) ?></div>
         </li>
 
       <?php } ?>

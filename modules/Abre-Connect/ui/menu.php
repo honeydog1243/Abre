@@ -25,8 +25,8 @@
 <div class="row">
   <div class="col s12" style="background-color: <?php echo getSiteColor(); ?>">
     <ul id="connect-tabs" class="tabs" style="background-color: <?php echo getSiteColor(); ?>">
-      <li class="tab col s2"><a href="#home">Home</a></li>
       <li class="tab col s2"><a href="#journals">Journals</a></li>
+      <!-- <li class="tab col s2"><a href="#home">Home</a></li> -->
     </ul>
   </div>
 </div>

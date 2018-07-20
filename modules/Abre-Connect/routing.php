@@ -26,7 +26,7 @@
         $('#navigation_top').hide();
         $('#content_holder').hide();
         $('#loader').show();
-        $('#titletext').text('Abre - Connect');
+        $('#titletext').text('Connect');
         document.title = 'Abre - Connect';
         $('#content_holder').load('modules/".basename(__DIR__)."/ui/home.php', function() { init_page(); });
         $( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/ui/modals.php' );
