@@ -41,8 +41,9 @@
   }
 
   function formatDateTime($dt) {
-    $now = new DateTime('@'.time());
-    $diff = $dt->diff($now);
+    $now = getOnlyDate(new DateTime('@'.time()));
+    $d = getOnlyDate($dt);
+    $diff = $d->diff($now);
 
     if($diff->days < 1) {
       return 'Today';
@@ -53,6 +54,10 @@
     } else {
       return $dt->format('n/j/Y');
     }
+  }
+
+  function getOnlyDate($dt) {
+    return DateTime::createFromFormat('Y-m-d', $dt->format('Y-m-d'));
   }
 ?>
 
