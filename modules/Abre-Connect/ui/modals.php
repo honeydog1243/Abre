@@ -28,23 +28,69 @@
 ?>
 
 <div id="startermodal" class="modal modal-fixed-footer modal-mobile-full">
-  <div class="modal-content" style="padding: 0px !important;">
-		<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
-			<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Example Starter Modal</span></div>
-			<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
-		</div>
-		<div style='padding: 0px 24px 0px 24px;'>
-	    <div class="row center-align">
-	      <p id="infoHolder" style=""></p>
-	    </div>
-		</div>
-  </div>
-  <div class="modal-footer">
-	  <div id ="footerButtonsDiv" style='display: inline-block; float:right'>
-			<button class="modal-close waves-effect btn-flat white-text" style='margin-left:5px; background-color: <?php echo getSiteColor(); ?>'>Close</button>
-	    <a class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo getSiteColor(); ?>'>Button</a>
-	  </div>
-  </div>
+  <form>
+    <div class="modal-content" style="padding: 0px !important;">
+      <div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+        <div class='col s11'>
+          <span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">
+            Create a New Journal
+          </span>
+        </div>
+        <div class='col s1 right-align'>
+          <a class="modal-close">
+            <i class='material-icons' style='color: #fff;'>
+              clear
+            </i>
+          </a>
+        </div>
+      </div>
+      <div style='padding: 0px 24px 0px 24px;'>
+        <div class="row">
+          <div class="col s6">
+            <label for="title">Title</label>
+            <input id="title" type="text" class="validate" placeholder="Title">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s6">
+            <label for="subject">Subjects</label>
+            <input id="subject" type="text" placeholder="Insert a Subject">
+          </div>
+          <div class="col s6">
+            <!-- todo make a chip set of subjects -->
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <label for="body">Journal Body</label>
+            <textarea id="body" placeholder="Write a Journal"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <div class="file-field input-field">
+              <div class="btn" style="background-color: <?php echo getSiteColor(); ?>">
+                <span>FILE</span>
+                <input type="file" multiple>
+              </div>
+              <div class="file-path-wrapper">
+                <input class="file-path validate" type="text" placeholder="Upload files">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div id ="footerButtonsDiv" style='display: inline-block; float:right'>
+        <!-- <a class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo getSiteColor(); ?>'>
+          Save
+        </a> -->
+        <!-- <button type="submit" id="connect-submit">Save</button> -->
+        <input type="submit" id="new-journal-submit" content="Save" class="btn" style="background-color: <?php echo getSiteColor(); ?>">
+      </div>
+    </div>
+  </form>
 </div>
 
 <script>

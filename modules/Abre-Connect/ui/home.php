@@ -76,7 +76,7 @@
 
         <li class="collection-item avatar" 
           style="width: auto; height: auto; border-radius: 0; ">
-        <!-- above line is to override Abre's only style overload for .avatar -->
+          <!-- above line is to override Abre's only style overload for .avatar -->
 
           <i class="material-icons circle">account_circle</i>
           <span class="title"><?php echo $j->title ?></span>
@@ -89,6 +89,24 @@
 
       <?php } ?>
       
-    </ul>  
+    </ul>
+  </div>
+
+  <div class="fixed-action-btn">
+    <a class="modal-add-journal btn-floating btn-large" style="background-color: <?php echo getSiteColor(); ?>">
+      <i class="large material-icons">mode_edit</i>
+    </a>
   </div>
 </div>
+
+<script>
+  $('.modal-add-journal').click(() => {
+    $("#startermodal").openModal({
+      in_duration: 0, 
+      out_duration: 0,
+      ready: () => {
+        console.log('it worked');
+      }
+    });
+  });
+</script>
