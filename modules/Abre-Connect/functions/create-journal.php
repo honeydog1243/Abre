@@ -21,9 +21,6 @@
 	require_once(dirname(__FILE__) . '/../../../core/abre_functions.php');
 	require_once(dirname(__FILE__) . '/../../../core/abre_dbconnect.php');
 
-	if($_SESSION['usertype'] == 'staff') {
-    // echo "create-journal.php";
-
     $title = $_POST["title"];
     $subject = $_POST["subject"];
     $body = $_POST["body"];
@@ -40,7 +37,4 @@
     $statement->execute();
     $statement->close();
     $db->close();
-
-    echo "done";
-  }
 ?>

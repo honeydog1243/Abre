@@ -27,7 +27,7 @@
 	}
 ?>
 
-<div id="startermodal" class="modal modal-fixed-footer modal-mobile-full">
+<div id="journal-modal" class="modal modal-fixed-footer modal-mobile-full">
   <form id="new-journal-form" action="modules/Abre-Connect/functions/create-journal.php">
     <div class="modal-content" style="padding: 0px !important;">
       <div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
@@ -48,7 +48,7 @@
         <div class="row">
           <div class="col s6">
             <label for="title">Title</label>
-            <input id="title" name="title" type="text" class="validate" placeholder="Title">
+            <input id="title" name="title" type="text" placeholder="Title">
           </div>
         </div>
         <div class="row">
@@ -91,15 +91,21 @@
 
 <script>
   var form = $("#new-journal-form");
-  form.submit((e) => {
+  form.submit(e => {
     e.preventDefault();
 
     $.ajax({
       type: 'POST',
-      url: form.attr('action'),
+      url: $(form).attr('action'),
       data: $(form).serialize()
-    }).done((response) => {
-      console.log('post finished:', response);
+    }).done(response => {
+      $("#journal-modal").closeModal({
+        in_duration: 0, 
+        out_duration: 0,
+        complete: () => {
+          $("#journals").load("modules/Abre-Connect/ui/journals.php");
+        }
+      });
     });
   });
 </script>
