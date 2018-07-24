@@ -48,13 +48,13 @@
         <div class="row">
           <div class="col s6">
             <label for="title">Title</label>
-            <input id="title" name="title" type="text" placeholder="Title">
+            <input id="title" name="title" class="validate" required type="text" placeholder="Title">
           </div>
         </div>
         <div class="row">
           <div class="col s6">
             <label for="subject">Subjects</label>
-            <input id="subject" name="subject" type="text" placeholder="Insert a Subject">
+            <input id="subject" name="subject" class="validate" required type="text" placeholder="Insert a Subject">
           </div>
           <div class="col s6">
             <!-- todo make a chip set of subjects -->
@@ -63,7 +63,7 @@
         <div class="row">
           <div class="col s12">
             <label for="body">Journal Body</label>
-            <textarea id="body" name="body" placeholder="Write a Journal"></textarea>
+            <textarea id="body" name="body" class="validate" required placeholder="Write a Journal"></textarea>
           </div>
         </div>
         <div class="row">
