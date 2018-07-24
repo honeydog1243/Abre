@@ -27,9 +27,20 @@
     $title = $_POST["title"];
     $subject = $_POST["subject"];
     $body = $_POST["body"];
-    $now = new DateTime('@'.time()).format()
+
+    $dt = new DateTime('@'.time());
+    $now = $dt->format('c');
+    $usersId = 10; //TODO harded
     // $files = $_POST["files"];
-    //TODO $userid = ...
-    $sql = "INSERT INTO Abre_Connect_Journal VALUES (DEFAULT, 1, ".$title.", ".$body.", )";
+    $sql = "INSERT INTO Abre_Connect_Journal (UsersId, Title, Body, LastUpdated) VALUES (?, ?, ?, ?)";
+
+    $statement = $db->stmt_init();
+    $statement->prepare($sql);
+    $statement->bind_param("isss", $usersId, $title, $body, $now);
+    $statement->execute();
+    $statement->close();
+    $db->close();
+
+    echo "done";
   }
 ?>

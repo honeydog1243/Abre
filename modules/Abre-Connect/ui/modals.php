@@ -48,13 +48,13 @@
         <div class="row">
           <div class="col s6">
             <label for="title">Title</label>
-            <input id="title" type="text" class="validate" placeholder="Title">
+            <input id="title" name="title" type="text" class="validate" placeholder="Title">
           </div>
         </div>
         <div class="row">
           <div class="col s6">
             <label for="subject">Subjects</label>
-            <input id="subject" type="text" placeholder="Insert a Subject">
+            <input id="subject" name="subject" type="text" placeholder="Insert a Subject">
           </div>
           <div class="col s6">
             <!-- todo make a chip set of subjects -->
@@ -63,7 +63,7 @@
         <div class="row">
           <div class="col s12">
             <label for="body">Journal Body</label>
-            <textarea id="body" placeholder="Write a Journal"></textarea>
+            <textarea id="body" name="body" placeholder="Write a Journal"></textarea>
           </div>
         </div>
         <div class="row">
@@ -71,7 +71,7 @@
             <div class="file-field input-field">
               <div class="btn" style="background-color: <?php echo getSiteColor(); ?>">
                 <span>FILE</span>
-                <input id="files" type="file" multiple>
+                <input id="files" name="files" type="file" multiple>
               </div>
               <div class="file-path-wrapper">
                 <input class="file-path validate" type="text" placeholder="Upload files">
@@ -97,7 +97,7 @@
     $.ajax({
       type: 'POST',
       url: form.attr('action'),
-      data: form.serialize()
+      data: $(form).serialize()
     }).done((response) => {
       console.log('post finished:', response);
     });

@@ -93,14 +93,14 @@
   </div>
 
   <div class="fixed-action-btn">
-    <a class="modal-add-journal btn-floating btn-large" style="background-color: <?php echo getSiteColor(); ?>">
+    <a id="modal-add-journal" class="btn-floating btn-large" style="background-color: <?php echo getSiteColor(); ?>">
       <i class="large material-icons">mode_edit</i>
     </a>
   </div>
 </div>
 
 <script>
-  $('.modal-add-journal').click(() => {
+  $('#modal-add-journal').click(() => {
     $("#startermodal").openModal({
       in_duration: 0, 
       out_duration: 0,
