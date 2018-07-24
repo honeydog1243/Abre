@@ -105,7 +105,6 @@
       in_duration: 0, 
       out_duration: 0,
       ready: () => {
-        console.log('it worked');
       }
     });
   });

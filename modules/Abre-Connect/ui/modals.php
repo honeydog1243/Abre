@@ -28,7 +28,7 @@
 ?>
 
 <div id="startermodal" class="modal modal-fixed-footer modal-mobile-full">
-  <form>
+  <form id="new-journal-form" action="modules/Abre-Connect/functions/create-journal.php">
     <div class="modal-content" style="padding: 0px !important;">
       <div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
         <div class='col s11'>
@@ -71,7 +71,7 @@
             <div class="file-field input-field">
               <div class="btn" style="background-color: <?php echo getSiteColor(); ?>">
                 <span>FILE</span>
-                <input type="file" multiple>
+                <input id="files" type="file" multiple>
               </div>
               <div class="file-path-wrapper">
                 <input class="file-path validate" type="text" placeholder="Upload files">
@@ -83,10 +83,6 @@
     </div>
     <div class="modal-footer">
       <div id ="footerButtonsDiv" style='display: inline-block; float:right'>
-        <!-- <a class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo getSiteColor(); ?>'>
-          Save
-        </a> -->
-        <!-- <button type="submit" id="connect-submit">Save</button> -->
         <input type="submit" id="new-journal-submit" content="Save" class="btn" style="background-color: <?php echo getSiteColor(); ?>">
       </div>
     </div>
@@ -94,5 +90,16 @@
 </div>
 
 <script>
+  var form = $("#new-journal-form");
+  form.submit((e) => {
+    e.preventDefault();
 
+    $.ajax({
+      type: 'POST',
+      url: form.attr('action'),
+      data: form.serialize()
+    }).done((response) => {
+      console.log('post finished:', response);
+    });
+  });
 </script>
