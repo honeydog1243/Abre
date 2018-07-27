@@ -71,7 +71,7 @@
             <div class="file-field input-field">
               <div class="btn" style="background-color: <?php echo getSiteColor(); ?>">
                 <span>FILE</span>
-                <input id="files" name="files" type="file" multiple>
+                <input id="files" name="files[]" type="file" multiple>
               </div>
               <div class="file-path-wrapper">
                 <input class="file-path validate" type="text" placeholder="Upload files">
@@ -94,16 +94,21 @@
   form.submit(e => {
     e.preventDefault();
 
+    var fd = new FormData(form[0]);
+
     $.ajax({
       type: 'POST',
       url: $(form).attr('action'),
-      data: $(form).serialize()
+      data: fd,
+      processData: false,
+      contentType: false,
     }).done(response => {
       $("#journal-modal").closeModal({
         in_duration: 0, 
         out_duration: 0,
         complete: () => {
           $("#journals").load("modules/Abre-Connect/ui/journals.php");
+          form[0].reset();
         }
       });
     });

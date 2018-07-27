@@ -1,0 +1,3 @@
+Released independently from Laravel project (PHP API).
+
+Assume the same license as Laravel API (MIT)
