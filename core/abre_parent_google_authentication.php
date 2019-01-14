@@ -18,6 +18,8 @@
 
 	//Google API PHP library files
 	require_once 'google/vendor/autoload.php';
+	require_once('abre_functions.php');
+	$portal_root = getConfigPortalRoot();
 
   //Create Client request to access Google API
   $client = new Google_Client();
@@ -28,13 +30,12 @@
   $client->setClientSecret($client_secret);
   $redirect_uri = $portal_root.'/core/abre_google_login_helper.php';
   $client->setRedirectUri($redirect_uri);
-  $simple_api_key = constant("GOOGLE_API_KEY");
+  $simple_api_key = getConfigGoogleApiKey();
   $client->setDeveloperKey($simple_api_key);
   $client->setAccessType("offline");
   $client->setApprovalPrompt("force");
   $scopes='https://www.googleapis.com/auth/userinfo.email';
   $client->setScopes($scopes);
-	$client->setIncludeGrantedScopes(true);
 
   $Service_Oauth2 = new Google_Service_Oauth2($client);
 ?>

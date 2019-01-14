@@ -17,13 +17,13 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_google_login.php');
 
 	//Insert/Update Profile
 	include "../../core/abre_dbconnect.php";
-	$sql = "SELECT * FROM profiles WHERE email = '".$_SESSION['useremail']."'";
+	$sql = "SELECT * FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 	$result = $db->query($sql);
 	$stack = array();
 	$departmentcount = $_POST["departmentcount"];
@@ -36,9 +36,9 @@
 		}
 		$str = implode (", ", $stack);
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE profiles SET streams = ? WHERE email = ?";
+		$sql = "UPDATE profiles SET streams = ? WHERE email = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("ss", $str, $_SESSION['useremail']);
+		$stmt->bind_param("ssi", $str, $_SESSION['useremail'], $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();
@@ -51,9 +51,9 @@
 		}
 		$str = implode (", ", $stack);
 		$stmt = $db->stmt_init();
-		$sql = "INSERT INTO profiles (email, streams) VALUES (?, ?)";
+		$sql = "INSERT INTO profiles (email, streams, siteID) VALUES (?, ?, ?)";
 		$stmt->prepare($sql);
-		$stmt->bind_param("ss", $_SESSION['useremail'], $str);
+		$stmt->bind_param("ssi", $_SESSION['useremail'], $str, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

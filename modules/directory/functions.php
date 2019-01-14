@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require('permissions.php');
 	require_once('../../core/abre_functions.php');
@@ -30,7 +30,7 @@
 
 	function sendSupportTicket($first, $last){
 		include "../../core/abre_dbconnect.php";
-		$sql = "SELECT options FROM directory_settings WHERE dropdownID = 'supportTicket'";
+		$sql = "SELECT options FROM directory_settings WHERE dropdownID = 'supportTicket' AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$email = $row["options"];
@@ -41,7 +41,23 @@
 			$subject = "New User Account Needed for $first $last";
 			$message = "Please create a new user account for:\n\n$first $last.";
 			$headers = "From: noreply@abre.io";
-			mail($to, $subject, $message, $headers);
+
+			if ($cloudsetting=="true") {
+				$email = new \SendGrid\Mail\Mail(); 
+				$email->setFrom("noreply@abre.io", null);
+				$email->setSubject($subject);
+				$email->addTo($to, null);
+				$email->addContent("text/plain", $message);
+				$sendgrid = new \SendGrid(getenv('SENDGRID_API_KEY'));
+				try {
+					$response = $sendgrid->send($email);
+				} catch (Exception $e) {
+					//echo 'Caught exception: '. $e->getMessage() ."\n";
+				}
+			}
+			else {
+				mail($to, $subject, $message, $headers);
+			}
 		}
 	}
 

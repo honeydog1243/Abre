@@ -17,7 +17,7 @@
     */
 
 	//Add google anaylitics
-	if(file_exists('configuration.php')){
+	if(file_exists('configuration.php') || getenv("USE_GOOGLE_CLOUD") == "true"){
 ?>
 	<script>
 			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -26,6 +26,9 @@
 			})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 			<?php
 				echo "ga('create', '".getSiteAnalytics()."', 'auto');";
+				if(isset($_SESSION['usertype'])){
+					echo "ga('set', 'dimension1', '".$_SESSION['usertype']."');";
+				}
 			?>
 			ga('send', 'pageview');
 	</script>

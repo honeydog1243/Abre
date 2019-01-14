@@ -16,8 +16,8 @@
     * version 3 along with this program.  If not, see https://www.gnu.org/licenses/agpl-3.0.en.html.
     */
 
-  require_once(dirname(__FILE__) . '/../configuration.php');
   require_once(dirname(__FILE__) . '/abre_functions.php');
+  $portal_root = getConfigPortalRoot();
 
 	$url = 'https://status.abre.io/installation.php';
 	$ch = curl_init($url);

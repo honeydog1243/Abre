@@ -111,7 +111,7 @@
 	    }
 
 			//Create required database tables
-		$sql = "CREATE TABLE `users` (`id` int(11) NOT NULL,`email` text NOT NULL,`superadmin` int(11) NOT NULL DEFAULT '0',`admin` int(11) NOT NULL DEFAULT '0',`refresh_token` text NOT NULL,`cookie_token` text NOT NULL, `auth_service` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+		$sql = "CREATE TABLE `users` (`id` int(11) NOT NULL,`email` text NOT NULL,`superadmin` int(11) NOT NULL DEFAULT '0',`admin` int(11) NOT NULL DEFAULT '0',`refresh_token` text NOT NULL,`cookie_token` text NOT NULL, `auth_service` text NOT NULL, `siteID` int(11) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
 		$sql .= "ALTER TABLE `users` ADD PRIMARY KEY (`id`);";
 		$sql .= "ALTER TABLE `users` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
 
@@ -194,19 +194,19 @@
 		//Write Google Console client ID
 		$txt = "\n";
 		fwrite($myfile, $txt);
-		$txt = "if(!defined('GOOGLE_CLIENT_ID')){ define('GOOGLE_CLIENT_ID', '".$_POST['google_client_id']."'); }";
+		$txt = "if(!defined('GOOGLE_CLIENT_ID')){ define('GOOGLE_CLIENT_ID', '".trim($_POST['google_client_id'], " ")."'); }";
 		fwrite($myfile, $txt);
 
 		//Write Google Console client secret
 		$txt = "\n";
 		fwrite($myfile, $txt);
-		$txt = "if(!defined('GOOGLE_CLIENT_SECRET')){ define('GOOGLE_CLIENT_SECRET', '".$_POST['google_client_secret']."'); }";
+		$txt = "if(!defined('GOOGLE_CLIENT_SECRET')){ define('GOOGLE_CLIENT_SECRET', '".trim($_POST['google_client_secret'], " ")."'); }";
 		fwrite($myfile, $txt);
 
 		//Write Google Console API key
 		$txt = "\n";
 		fwrite($myfile, $txt);
-		$txt = "if(!defined('GOOGLE_API_KEY')){ define('GOOGLE_API_KEY', '".$_POST['google_api_key']."'); }";
+		$txt = "if(!defined('GOOGLE_API_KEY')){ define('GOOGLE_API_KEY', '".trim($_POST['google_api_key'], " ")."'); }";
 		fwrite($myfile, $txt);
 
 		//Write Google Console Domain name
@@ -280,30 +280,57 @@
 		//Close file
 		fclose($myfile);
 
-		if($_POST['abre_community'] == 'checked'){
-			include "abre_dbconnect.php";
-			if(!$result = $db->query("SELECT * FROM settings LIMIT 1")){
-					$sql = "CREATE TABLE `settings` (`id` int(11) NOT NULL,`options` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-					$sql .= "INSERT INTO `settings` (`id`, `options`) VALUES (1, '');";
-					$sql .= "ALTER TABLE `settings` ADD PRIMARY KEY (`id`);";
-					$sql .= "ALTER TABLE `settings` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
-					$db->multi_query($sql);
-					$db->close();
-			}
+		include "abre_dbconnect.php";
+		$sql = "CREATE TABLE `abre_tenant_map` (`id` int(11) NOT NULL, `siteID` int(11) NOT NULL UNIQUE, `domain` text NOT NULL, `district_name` text NOT NULL, `config_settings` text NOT NULL, `creation_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+		$sql .= "ALTER TABLE `abre_tenant_map` ADD PRIMARY KEY (`id`);";
+		$sql .= "ALTER TABLE `abre_tenant_map` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
+		$db->multi_query($sql);
+		$db->close();
 
-			include "abre_dbconnect.php";
-			$array = ["abre_community" => $_POST['abre_community'], "community_first_name" => $_POST['community_first_name'], "community_last_name" => $_POST['community_last_name'], "community_email" => $_POST['community_email'], "community_users" => $_POST['community_users']];
+		$url = url();
+		$urlParsed = parse_url($url);
+		$tenantUrl = $urlParsed['host'];
+
+		include "abre_dbconnect.php";
+		$stmt = $db->stmt_init();
+		$sql = "INSERT INTO abre_tenant_map (`siteID`, `domain`, `district_name`, `config_settings`) VALUES (?, ?, ?, ?)";
+		$stmt->prepare($sql);
+		$configArray = ["portal_root" => $currenturl, "portal_private_root" => $_POST["abre_private_root"], "SITE_GAFE_DOMAIN" => $_POST['domain_name'], "DB_KEY" => $randommysqlkey, "GC_PROJECT" => NULL, "GC_BUCKET" => NULL, "GOOGLE_CLIENT_ID" => trim($_POST['google_client_id'], " "), "GOOGLE_CLIENT_SECRET" => trim($_POST['google_client_secret'], " "), "GOOGLE_API_KEY" => trim($_POST['google_api_key'], " "), "GOOGLE_HD" => $domain_name_single, "PORTAL_COOKIE_KEY" => $randomcookiekey, "PORTAL_COOKIE_NAME" => "Abre", "portal_path_root" => $_SERVER['DOCUMENT_ROOT'], "GOOGLE_REDIRECT" => $portal_root.'/index.php', "GOOGLE_SCOPES" => serialize (array('https://www.googleapis.com/auth/userinfo.email','https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.rosters.readonly')), "STREAM_CACHE" => "true", "SITE_MODE" => "PRODUCTION", "USE_GOOGLE_CLOUD" => "false", "SFTP_USER" => "", "SFTP_PASSWORD" => "", "VENDOR_URL" => "", "VENDOR_IDENTIFIER" => "", "VENDOR_KEY" => "", "VENDOR_DISTRICT" => ""];
+		$configJSON = json_encode($configArray);
+		$siteID = 0;
+		$districtName = "Abre";
+		$stmt->bind_param("isss", $siteID, $tenantUrl, $districtName, $configJSON);
+		$stmt->execute();
+		$stmt->close();
+
+		if(!$result = $db->query("SELECT * FROM settings LIMIT 1")) {
+			$sql = "CREATE TABLE `settings` (`id` int(11) NOT NULL, `siteID` int(11), `options` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+			$sql .= "INSERT INTO `settings` (`id`, siteID, `options`) VALUES (1, $siteID, '');";
+			$sql .= "ALTER TABLE `settings` ADD PRIMARY KEY (`id`);";
+			$sql .= "ALTER TABLE `settings` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
+			$db->multi_query($sql);
+		}
+
+		if(isset($_POST['abre_community']) && $_POST['abre_community'] == 'checked') {
+			$array = [
+				"abre_community" => $_POST['abre_community'],
+				"community_first_name" => $_POST['community_first_name'],
+				"community_last_name" => $_POST['community_last_name'],
+				"community_email" => $_POST['community_email'],
+				"community_users" => $_POST['community_users']
+			];
 			$json = json_encode($array);
 
-			//Update the database
+			//Update the settings database
 			$stmt = $db->stmt_init();
-			$sql = "UPDATE settings SET options = ?";
+			$sql = "UPDATE settings SET options = ? WHERE siteID = ?";
 			$stmt->prepare($sql);
-			$stmt->bind_param("s", $json);
+			$stmt->bind_param("si", $json, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
-			$db->close();
 		}
+
+		$db->close();
 
 		//Redirect
 		echo "Redirect";

@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once('permissions.php');
 
@@ -26,7 +26,7 @@
 	}else{
 		echo "<option value='$contract' selected>Choose</option>";
 	}
-	$sql = "SELECT options FROM directory_settings WHERE dropdownID = 'contractOptions'";
+	$sql = "SELECT options FROM directory_settings WHERE dropdownID = 'contractOptions' AND siteID = '".$_SESSION['siteID']."'";
 	$result = $db->query($sql);
 	$row = $result->fetch_assoc();
 	$titles = explode(PHP_EOL, $row['options']);

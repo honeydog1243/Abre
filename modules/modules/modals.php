@@ -19,13 +19,15 @@
     //Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+
+	$siteColor = getSiteColor();
 ?>
 
 	<!-- Add module modal -->
 	<div id="addmodule" class="modal modal-fixed-footer modal-mobile-full">
 		<form class="col s12" id="form-addmodule" method="post" action="modules/<?php echo basename(__DIR__); ?>/githubmoduleadd_process.php">
 		<div class="modal-content" style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Enter a Github Repository</span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -39,7 +41,7 @@
 			</div>
     </div>
 	  <div class="modal-footer">
-			<button type="submit" class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo getSiteColor(); ?>'>Add</button>
+			<button type="submit" class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo $siteColor; ?>'>Add</button>
 		</div>
 		</form>
 	</div>

@@ -17,10 +17,12 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+
+	$siteColor = getSiteColor();
 
 	//Check for installation
 	if(admin()){ require('installer.php'); }
@@ -46,8 +48,8 @@
 					echo "<p style='text-align:center;' class='truncate'>".$_SESSION['useremail']."</p>";
 					echo "<p style='text-align:center; font-weight:600;' class='truncate'><img src='".$_SESSION['picture']."?sz=100' style='width:100px; height:100px;' class='circle'></p>";
 					echo "<hr style='margin-bottom:20px;'>";
-					echo "<p style='text-align:center;'><a class='waves-effect btn-flat white-text myprofilebutton' href='#profile' style='margin-right:5px; background-color:"; echo getSiteColor(); echo "'>My Profile</a>";
-					echo "<a class='waves-effect btn-flat white-text' href='?signout' style='background-color:"; echo getSiteColor(); echo "'>Sign Out</a></p>";
+					echo "<p style='text-align:center;'><a class='waves-effect btn-flat white-text myprofilebutton' href='#profile' style='margin-right:5px; background-color:"; echo $siteColor; echo "'>My Profile</a>";
+					echo "<a class='waves-effect btn-flat white-text' href='/core/abre_signout.php' style='background-color:"; echo $siteColor; echo "'>Sign Out</a></p>";
 				echo "</div>";
 			?>
     	</div>
@@ -57,7 +59,7 @@
 	<div id='headlinedisplay' class='modal modal-fixed-footer modal-mobile-full'>
 		<form id='headlinedisplayform' method="post" action='#'>
 		<div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" id='headlinedisplaytitle' style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
 			</div>
 			<div style='padding: 0px 24px 0px 24px;'>
@@ -95,7 +97,7 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveheadlineresponse' style='background-color: <?php echo getSiteColor(); ?>;'>Finish</button>
+			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveheadlineresponse' style='background-color: <?php echo $siteColor; ?>;'>Finish</button>
 			<p id="headlineErrorMessage" style="display:none; float:right; color:red; margin:6px 0; padding-right:10px;"></p>
 		</div>
 		</form>
@@ -105,22 +107,22 @@
 	//get headlines that have not been completed by the user.
 	$today = date("Y-m-d");
 	$usertype = $_SESSION['usertype'];
-	$email = $_SESSION['useremail'];
+	$email = $_SESSION['escapedemail'];
 	$requiredHeadlines = array();
-	$sql = "SELECT id, title, content, form_id, video_id, purpose, required FROM headlines WHERE (start_date <= '$today' AND end_date >= '$today') OR date_restriction = '0' AND groups LIKE '%$usertype%'";
+	$sql = "SELECT id, title, content, form_id, video_id, purpose, required FROM headlines WHERE (start_date <= '$today' AND end_date >= '$today' OR date_restriction = '0') AND groups LIKE '%$usertype%' AND siteID = '".$_SESSION['siteID']."'";
 	$resultArray = databasequery($sql);
 	$resultSize = sizeof($resultArray);
 	if($resultSize > 0){
 		foreach($resultArray as $startup){
 			$id = $startup['id'];
-			$sql2 = "SELECT response_id FROM headline_responses WHERE email = '$email' AND headline_id = '$id'";
+			$sql2 = "SELECT response_id FROM headline_responses WHERE email = '$email' AND headline_id = '$id' AND siteID ='".$_SESSION['siteID']."'";
 			$responseArray = databasequery($sql2);
 			$responseSize = sizeof($responseArray);
 			if($responseSize == 0){
 				if($startup['purpose'] == "form"){
 					$formID = $startup['form_id'];
 					if(isAppActive("Abre-Forms")){
-						$sql = "SELECT FormFields FROM forms WHERE ID = '$formID'";
+						$sql = "SELECT FormFields FROM forms WHERE ID = '$formID' AND siteID ='".$_SESSION['siteID']."'";
 						$row = $db->query($sql);
 						$result = $row->fetch_assoc();
 						$formfields = $result['FormFields'];

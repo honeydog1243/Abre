@@ -19,6 +19,7 @@
 	//Include required files
 	require_once('abre_verification.php');
 	require_once('abre_functions.php');
+	require('abre_dbconnect.php');
 
 	if(superadmin() && getUpdateRequiredDbValue()){
 
@@ -56,31 +57,38 @@
 		}
 		$db->close();
 
-		$apps_abre = array("Abre-Assessments", "Abre-Books", "Abre-Conduct", "Abre-Curriculum", "Abre-Forms", "Abre-Guided-Learning", "Abre-Students", "apps", "directory", "profile", "settings", "stream");
+		require('abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM apps_abre LIMIT 1")){
+			$sql = "ALTER TABLE `apps_abre` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
+		}
+		$db->close();
+
+		$apps_abre = array("Abre-Assessments", "Abre-Books", "Abre-Conduct", "Abre-Curriculum", "Abre-Device-Manager", "Abre-Forms", "Abre-Gradebook", "Abre-Guided-Learning", "Abre-Learn", "Abre-Plans", "Abre-Starter", "Abre-Students", "apps", "directory", "profile", "settings", "stream");
 
 		require('abre_dbconnect.php');
 		$stmt = $db->stmt_init();
-		$insertSql = "INSERT INTO apps_abre (app, active, installed) VALUES (?, ?, ?)";
+		$insertSql = "INSERT INTO apps_abre (app, active, installed, siteID) VALUES (?, ?, ?, ?)";
 		$stmt->prepare($insertSql);
 		$active = 1;
 		$installed = 0;
 		foreach($apps_abre as $app){
-			$sql = "SELECT COUNT(*) FROM apps_abre WHERE app = '$app'";
+			$sql = "SELECT COUNT(*) FROM apps_abre WHERE app = '$app' AND siteID = '".$_SESSION['siteID']."'";
 			$query = $db->query($sql);
 			$result = $query->fetch_assoc();
 			$count = $result["COUNT(*)"];
 			if($count == 0){
-				$stmt->bind_param("sii", $app, $active, $installed);
+				$stmt->bind_param("siii", $app, $active, $installed, $_SESSION['siteID']);
 				$stmt->execute();
 			}
 		}
 		$stmt->close();
 
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE settings SET update_required = ?";
+		$sql = "UPDATE settings SET update_required = ? AND siteID = ?";
 		$stmt->prepare($sql);
 		$i = 0;
-		$stmt->bind_param("i", $i);
+		$stmt->bind_param("ii", $i, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();
@@ -108,14 +116,7 @@
 			$subpages = NULL;
 
 			require('abre_dbconnect.php');
-			//Load Abre app only if not turned off
-			$sqlcountcheck = "SELECT COUNT(*) FROM apps_abre WHERE app='$result' AND active='0' LIMIT 1";
-			$sqlcountcheckresult = $db->query($sqlcountcheck);
-			$sqlcountcheckreturn = $sqlcountcheckresult->fetch_assoc();
-			$apprecordexists = $sqlcountcheckreturn["COUNT(*)"];
-
-			if($apprecordexists == 0)
-			{
+			if(isAppActive($result)) {
 				require_once(dirname(__FILE__) . '/../modules/'.$result.'/config.php');
 				$access = strpos($pagerestrictions, $_SESSION['usertype']);
 				if($access === false){

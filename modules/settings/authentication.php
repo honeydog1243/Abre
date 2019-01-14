@@ -17,11 +17,13 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require(dirname(__FILE__) . '/../../core/abre_version.php');
+	$portal_root = getConfigPortalRoot();
+	$siteColor = getSiteColor();
 
 	//Settings
 	if(admin()){
@@ -45,7 +47,7 @@
 								echo "<h5 style='padding-top:0px; margin:0px;'>Google Apps Authentication</h5><p>Let your district sign in with a Google account.</p>";
 						echo "</div>";
 						echo "<div class='col l2 m12 s12'>";
-								echo "<a id='exportkeys' href='#googleAuthModal' class='modal-action waves-effect btn-flat white-text googleAuthModal' style='background-color: ".getSiteColor()."'>Configure</a>";
+								echo "<a id='exportkeys' href='#googleAuthModal' class='modal-action waves-effect btn-flat white-text googleAuthModal' style='background-color: ".$siteColor."'>Configure</a>";
 						echo "</div>";
 					echo "</div>";
 
@@ -57,7 +59,7 @@
 								echo "<h5 style='padding-top:0px; margin:0px;'>Microsoft Authentication</h5><p>Let your district sign in with a Microsoft account.</p>";
 						echo "</div>";
 						echo "<div class='col l2 m12 s12'>";
-								echo "<a id='exportkeys' href='#microsoftAuthModal' class='modal-action waves-effect btn-flat white-text microsoftAuthModal' style='background-color: ".getSiteColor()."'>Configure</a>";
+								echo "<a id='exportkeys' href='#microsoftAuthModal' class='modal-action waves-effect btn-flat white-text microsoftAuthModal' style='background-color: ".$siteColor."'>Configure</a>";
 						echo "</div>";
 					echo "</div>";
 
@@ -69,7 +71,7 @@
 								echo "<h5 style='padding-top:0px; margin:0px;'>Facebook Authentication</h5><p>Let your parents sign in with a Facebook account.</p>";
 						echo "</div>";
 						echo "<div class='col l2 m12 s12'>";
-								echo "<a id='exportkeys' href='#facebookAuthModal' class='modal-action waves-effect btn-flat white-text facebookAuthModal' style='background-color: ".getSiteColor()."'>Configure</a>";
+								echo "<a id='exportkeys' href='#facebookAuthModal' class='modal-action waves-effect btn-flat white-text facebookAuthModal' style='background-color: ".$siteColor."'>Configure</a>";
 						echo "</div>";
 					echo "</div>";
 					if($db->query("SELECT * FROM Abre_Students LIMIT 1") && isAppActive("settings") && admin()){
@@ -78,10 +80,10 @@
 								echo "<h4>Student Key Management</h4>";
 							echo "</div>";
 							echo "<div class='input-field col l12 s12'>";
-								echo "<a id='generateallkeys' class='modal-action waves-effect btn-flat white-text' style='background-color: ".getSiteColor()."'>Generate Keys for All Students</a>";
+								echo "<a id='generateallkeys' class='modal-action waves-effect btn-flat white-text' style='background-color: ".$siteColor."'>Generate Keys for All Students</a>";
 							echo "</div>";
 							echo "<div class='input-field col l12 s12'>";
-								echo "<a id='exportkeys' href='$portal_root/modules/settings/exportkeysfile.php'class='modal-action waves-effect btn-flat white-text' style='background-color: ".getSiteColor()."'>Download All Keys</a>";
+								echo "<a id='exportkeys' href='$portal_root/modules/settings/exportkeysfile.php'class='modal-action waves-effect btn-flat white-text' style='background-color: ".$siteColor."'>Download All Keys</a>";
 							echo "</div>";
 						echo "</div>";
 					}
@@ -146,7 +148,7 @@
 		//Generate Keys for Parents
 		$("#generateallkeys").unbind().click(function(event){
 			event.preventDefault();
-			var result = confirm('Are you sure you want to proceed? This will create new keys for every student and invalidate current active keys!');
+			var result = confirm('Generating new keys for all student will invalidate all existing keys. Generating a new key for an individual student can be done via the profile tab in the Students App. Are you sure you want to proceed?');
 			if(result){
 				$("#generateallkeys").html("Generating Keys...");
 				$.ajax({ type: 'POST', url: '/modules/settings/generate_all_keys.php'})

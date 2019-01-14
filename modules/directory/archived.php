@@ -17,16 +17,17 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once('permissions.php');
+	$portal_root = getConfigPortalRoot();
 
 	//Display search results
 	if($pageaccess == 1){
 
-		$sql = "SELECT COUNT(*) FROM directory WHERE archived = 1";
+		$sql = "SELECT COUNT(*) FROM directory WHERE archived = 1 AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		$resultrow = $result->fetch_assoc();
 		$rowcount = $resultrow["COUNT(*)"];
@@ -48,7 +49,7 @@
 								echo "</tr>";
 							echo "</thead>";
 							echo "<tbody>";
-							$sql = "SELECT firstname, lastname, location, email, title, classification, probationreportdate, picture, senioritydate, id FROM directory WHERE archived = 1 ORDER BY updatedtime DESC";
+							$sql = "SELECT firstname, lastname, location, email, title, classification, probationreportdate, picture, senioritydate, id FROM directory WHERE archived = 1 AND siteID = '".$_SESSION['siteID']."' ORDER BY updatedtime DESC";
 							$result = $db->query($sql);
 							while($row = $result->fetch_assoc()){
 								$resultcount = 1;
@@ -58,7 +59,7 @@
 								$lastname = stripslashes($lastname);
 								$location = htmlspecialchars($row["location"], ENT_QUOTES);
 								$location = stripslashes($location);
-								$email = htmlspecialchars($row["email"], ENT_QUOTES);
+								$email = $row["email"];
 								$email = stripslashes($email);
 								$title = htmlspecialchars($row["title"], ENT_QUOTES);
 								$title = stripslashes($title);

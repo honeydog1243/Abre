@@ -17,8 +17,11 @@
     */
 
 	//Display correct header
-	if(file_exists('configuration.php')){
+	if(file_exists('configuration.php') || getenv("USE_GOOGLE_CLOUD") == "true"){
 		require_once('abre_functions.php');
+		$siteColor = getSiteColor();
+		$siteLogo = getSiteLogo();
+		$siteTitle = getSiteTitle();
 ?>
 		<!DOCTYPE html>
 		<html lang='en'>
@@ -29,41 +32,41 @@
 
 				<?php
 				//Site title
-				echo "<title>".getSiteTitle()."</title>";
-				echo "<meta property='og:title' content='".getSiteTitle()."'/>";
+				echo "<title>".$siteTitle."</title>";
+				echo "<meta property='og:title' content='".$siteTitle."'/>";
 
 				//Site description
 				echo "<meta name='description' property='og:description' content='".getSiteDescription()."'>";
 
 				//Site favicon
-				echo "<link rel='icon' type='image/png' href='".getSiteLogo()."'>";
-				echo "<meta property='og:image' content='".getSiteLogo()."'>";
+				echo "<link rel='icon' type='image/png' href='".$siteLogo."'>";
+				echo "<meta property='og:image' content='".$siteLogo."'>";
 
 				//Chrome icon
 				echo "<meta name='mobile-web-app-capable' content='yes'>";
-				echo "<link rel='icon' sizes='192x192' href='".getSiteLogo()."'>";
+				echo "<link rel='icon' sizes='192x192' href='".$siteLogo."'>";
 
 				//iOS icon
-				echo "<meta name='apple-mobile-web-app-title' content='".getSiteTitle()."'>";
-				echo "<link rel='apple-touch-icon' href='".getSiteLogo()."'>";
+				echo "<meta name='apple-mobile-web-app-title' content='".$siteTitle."'>";
+				echo "<link rel='apple-touch-icon' href='".$siteLogo."'>";
 
 				//Windows icon
-				echo "<meta name='msapplication-TileImage' content='".getSiteLogo()."'>";
-				echo "<meta name='msapplication-TileColor' content='".getSiteColor()."'>";
+				echo "<meta name='msapplication-TileImage' content='".$siteLogo."'>";
+				echo "<meta name='msapplication-TileColor' content='".$siteColor."'>";
 
 				//Theme Color
-				echo "<meta name='theme-color' content='".getSiteColor()."'>";
+				echo "<meta name='theme-color' content='".$siteColor."'>";
 				?>
 
 				<link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500,700,900,100' rel='stylesheet' type='text/css'>
 				<link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
 				<link rel='stylesheet' href='core/css/materialize.0.97.7.2.min.css'>
 				<link rel='stylesheet' href='core/css/material.1.2.1.min.css'>
-				<link rel='stylesheet' href='core/css/abre.1.5.3.css'>
+				<link rel='stylesheet' href='core/css/abre.1.5.8.css'>
 				<link rel='stylesheet' href='core/css/animate.min.css'>
 				<link rel='stylesheet' href='core/css/timepicker.min.css'>
 				<link rel="stylesheet" href='core/css/spectrum.0.0.1.css'>
-				<link rel="stylesheet" href='core/css/tinymce.0.0.6.css'>
+				<link rel="stylesheet" href='core/css/tinymce.0.0.11.css'>
 				<link rel="stylesheet" href='modules/profile/css/calendar.css'>
 				<link rel="stylesheet" href='core/css/style.php'>
 
@@ -76,13 +79,24 @@
 				<script src='core/js/jquery.timepicker.min.js'></script>
 				<script src='core/js/spectrum.js'></script>
 				<script src='modules/profile/js/jquery-ui.multidatespicker.1.6.4.js'></script>
+				<script src="core/tinymce/js/tinymce/tinymce.min.js"></script>
+				<script src="core/js/tiny-utils-1.0.0.js"></script>
 				<script src='https://www.gstatic.com/charts/loader.js'></script>
 				<script src='core/js/chart.2.7.0.min.js'></script>
 				<script src='core/js/chartjs-plugin-datalabels.min.js'></script>
-				
+				<script src='core/js/chartjs-plugin-annotation.min.js'></script>
+				<script type="text/javascript">
+					var cloud = "<?php echo getenv("USE_GOOGLE_CLOUD"); ?>";
+						if (cloud) {
+							!function(a,b,c,d,e,f,g,h){a.RaygunObject=e,a[e]=a[e]||function(){
+							(a[e].o=a[e].o||[]).push(arguments)},f=b.createElement(c),g=b.getElementsByTagName(c)[0],
+							f.async=1,f.src=d,g.parentNode.insertBefore(f,g),h=a.onerror,a.onerror=function(b,c,d,f,g){
+							h&&h(b,c,d,f,g),g||(g=new Error(b)),a[e].q=a[e].q||[],a[e].q.push({
+							e:g})}}(window,document,"script","//cdn.raygun.io/raygun4js/raygun.min.js","rg4js");
+						}
+				</script>
 			</head>
 			<body>
-			<script>google.charts.load('current', {'packages':['corechart']});</script>
 
 	<?php
 	}else{
@@ -99,7 +113,7 @@
 				<link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
 				<link rel='stylesheet' href='core/css/materialize.0.97.7.2.min.css'>
 				<link rel='stylesheet' href='core/css/material.1.2.1.min.css'>
-				<link rel='stylesheet' href='core/css/abre.1.5.3.css'>
+				<link rel='stylesheet' href='core/css/abre.1.5.8.css'>
 
 				<script src='core/js/jquery-3.1.1.min.js'></script>
 				<script src='core/js/jquery-ui.1.12.1.min.js'></script>

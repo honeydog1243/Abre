@@ -45,6 +45,7 @@
 					$drivetitle = $file['name'];
 					$drivelink = $file['webViewLink'];
 					$drivemodifydate = $file['modifiedTime'];
+					date_default_timezone_set('US/Eastern');
 					$drivemodifydate = date("m/d g:i A", strtotime($drivemodifydate));
 
 					if($counter==1){
@@ -99,6 +100,7 @@
 					$drivetitle = $file['remoteItem']['name'];
 					$drivelink = $file['webUrl'];
 					$drivemodifydate = $file['lastModifiedDateTime'];
+					date_default_timezone_set('US/Eastern');
 					$drivemodifydate = date("m/d g:i A", strtotime($drivemodifydate));
 
 					if($counter == 1){

@@ -15,11 +15,14 @@
     * You should have received a copy of the Affero General Public License
     * version 3 along with this program.  If not, see https://www.gnu.org/licenses/agpl-3.0.en.html.
     */
-
-  if(session_id() == ''){ session_start(); }
-  require_once(dirname(__FILE__) . '/../configuration.php');
+  require_once(dirname(__FILE__) . '/abre_session.php');
+  if(session_id() == '') {
+    session_set_save_handler("sess_open", "sess_close", "sess_read", "sess_write", "sess_destroy", "sess_gc");
+    session_start();
+  }
   require_once('abre_functions.php');
   require(dirname(__FILE__). '/facebook/src/Facebook/autoload.php');
+  $portal_root = getConfigPortalRoot();
 
   $fb = new Facebook\Facebook([
     'app_id' => getSiteFacebookClientId(),
@@ -30,24 +33,24 @@
   $helper = $fb->getRedirectLoginHelper();
 
   try{
-    $accessToken = $helper->getAccessToken();
+    $accessToken = $helper->getAccessToken($portal_root.'/core/abre_facebook_login_helper.php');
   }catch(Facebook\Exceptions\FacebookResponseException $e){
     // When Graph returns an error
-    echo 'Graph returned an error: ' . $e->getMessage();
+    error_log('Graph returned an error: ' . $e->getMessage());
     exit;
   }catch(Facebook\Exceptions\FacebookSDKException $e){
     // When validation fails or other local issues
-    echo 'Facebook SDK returned an error: ' . $e->getMessage();
+    error_log('Facebook SDK returned an error: ' . $e->getMessage());
     exit;
   }
 
   if(!isset($accessToken)){
     if($helper->getError()){
       header('HTTP/1.0 401 Unauthorized');
-      echo "Error: " . $helper->getError() . "\n";
-      echo "Error Code: " . $helper->getErrorCode() . "\n";
-      echo "Error Reason: " . $helper->getErrorReason() . "\n";
-      echo "Error Description: " . $helper->getErrorDescription() . "\n";
+      error_log("Error: " . $helper->getError() . "\n");
+      error_log("Error Code: " . $helper->getErrorCode() . "\n");
+      error_log("Error Reason: " . $helper->getErrorReason() . "\n");
+      error_log("Error Description: " . $helper->getErrorDescription() . "\n");
     }else{
       header('HTTP/1.0 400 Bad Request');
       echo 'Bad request';
@@ -59,11 +62,6 @@
   $_SESSION['facebook_access_token'] = $accessToken->getValue();
   $pagelocation = $portal_root;
   $_SESSION['auth_service'] = "facebook";
-  if(isset($_SESSION["redirecturl"])){
-    header("Location: $pagelocation/#".$_SESSION["redirecturl"]);
-  }else{
-    header("Location: $pagelocation");
-  }
 
   //Use token to get information about the user we are logging in.
   $response = $fb->get('/me?fields=name,email', $accessToken->getValue());
@@ -74,16 +72,18 @@
   try{
     // access token set but useremail is not
     if(isset($_SESSION['facebook_access_token'])){
+      include "abre_dbconnect.php";
       if(!isset($_SESSION['useremail'])){
-        $_SESSION['useremail'] = $user['email'];
+        $email = strtolower($user["email"]);
+        $_SESSION['useremail'] = $email;
+        $_SESSION['escapedemail'] = mysqli_real_escape_string($db, $email);
         $_SESSION['usertype'] = 'parent';
         $_SESSION['displayName'] = $user['name'];
         $_SESSION['auth_service'] = "facebook";
         $_SESSION['picture'] = getSiteLogo();
       }
       if($_SESSION['usertype'] != ""){
-        include "abre_dbconnect.php";
-        if($result = $db->query("SELECT COUNT(*) FROM users_parent WHERE email = '".$_SESSION['useremail']."'")){
+        if($result = $db->query("SELECT COUNT(*) FROM users_parent WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'")){
           $resultrow = $result->fetch_assoc();
           $count = $resultrow["COUNT(*)"];
 
@@ -97,9 +97,9 @@
             }
           }else{
             $stmt = $db->stmt_init();
-            $sql = "INSERT INTO users_parent (email) VALUES (?)";
+            $sql = "INSERT INTO users_parent (email, siteID) VALUES (?, ?)";
             $stmt->prepare($sql);
-            $stmt->bind_param("s", $_SESSION['useremail']);
+            $stmt->bind_param("si", $_SESSION['useremail'], $_SESSION['siteID']);
             $stmt->execute();
             $stmt->close();
             $_SESSION['loggedin'] = "yes";
@@ -119,6 +119,12 @@
     }
   }
 
-  header("Location: $portal_root");
+  //Used for assessments and forms (if Chris doesn't remember what its for)
+  if(isset($_SESSION["redirecturl"])){
+    header("Location: $pagelocation/#".$_SESSION["redirecturl"]);
+  }else{
+    header("Location: $pagelocation");
+  }
+  exit();
 
  ?>

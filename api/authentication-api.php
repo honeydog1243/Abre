@@ -18,30 +18,32 @@
 
 	//Include required files
     require_once(dirname(__FILE__) . '/../core/abre_functions.php');
-    require_once(dirname(__FILE__) . '/../configuration.php');
+    if(getenv("USE_GOOGLE_CLOUD") != "true"){
+      require_once(dirname(__FILE__) . '/../configuration.php');
+    }
 
 
     class ApiAuthentication{
-                
+
         function signIn() {
 
             $baseUrl = $_SESSION['api_url'];
-            
+
             $sha1useremail = sha1($_SESSION['useremail']);
-            $cookiekey = constant("PORTAL_COOKIE_KEY");
+            $cookiekey = getConfigPortalCookieKey();
             $hash = sha1($cookiekey);
-            
+
             $storetoken = $sha1useremail.$hash;
             $useremail = $_SESSION['useremail'];
             //$site = "local";
             $site = 1;
-                        
+
             $data = json_encode(array(
                 "email" => $useremail,
                 "site" => $site,
                 "cookie_token" => $storetoken
             ));
-            
+
             $options = ["http" => [
                 "method" => "POST",
                 "header" => [
@@ -50,12 +52,12 @@
                 "content" => $data
             ]];
             $context = stream_context_create($options);
-            
+
             $url = $baseUrl."signin";
-            
+
             $value = file_get_contents($url, false, $context);
             $_SESSION['api_token']=$value;
-                        
+
             return $value;
         }
     }
@@ -84,7 +86,7 @@
         {
             $api = new ApiAuthentication();
             $value = $api->signIn();
-        
+
             //$_SESSION['usertype'] = NULL;
             //$_SESSION['useremail'] = NULL;
             //header("Location: $portal_root?signout");

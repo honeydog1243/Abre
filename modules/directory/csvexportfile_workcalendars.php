@@ -17,12 +17,18 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once('permissions.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	if($pageaccess == 1){
+
+		if(getenv("USE_GOOGLE_CLOUD") == "true"){
+			$decryptionKey = getConfigDBKey();
+		}else{
+			$decryptionKey = constant("DB_KEY");
+		}
 
 		header('Content-Type: text/csv; charset=utf-8');
 		header('Content-Disposition: attachment; filename=staffworkcalendars.csv');
@@ -31,19 +37,20 @@
 		$setupCSV = false;
 
 		include "../../core/abre_dbconnect.php";
-		$rows = mysqli_query($db, 'SELECT email, firstname, lastname, contractdays FROM directory WHERE archived = 0');
+		$rows = mysqli_query($db, "SELECT email, firstname, lastname, contractdays FROM directory WHERE archived = 0 AND siteID = '".$_SESSION['siteID']."'");
 		while ($row = mysqli_fetch_assoc($rows)) {
-			$email = htmlspecialchars($row["email"], ENT_QUOTES);
+			$email = $row["email"];
 			$email = stripslashes($email);
-			$firstname = htmlspecialchars($row["firstname"], ENT_QUOTES);
+			$emailSearch = mysqli_real_escape_string($db, $row["email"]);
+			$firstname = $row["firstname"];
 			$firstname = stripslashes($firstname);
-			$lastname = htmlspecialchars($row["lastname"], ENT_QUOTES);
+			$lastname = $row["lastname"];
 			$lastname = stripslashes($lastname);
-			$contractdays = htmlspecialchars($row["contractdays"], ENT_QUOTES);
-			$contractdays = stripslashes(decrypt($contractdays, ""));
+			$contractdays = $row["contractdays"];
+			$contractdays = stripslashes(decrypt($contractdays, "", $decryptionKey));
 
 			if($contractdays != ""){
-				$rowsselected = mysqli_query($db, "SELECT work_calendar FROM profiles WHERE email = '$email'");
+				$rowsselected = mysqli_query($db, "SELECT work_calendar FROM profiles WHERE email = '$emailSearch' AND siteID = '".$_SESSION['siteID']."'");
 				while ($rowselect = mysqli_fetch_assoc($rowsselected)){
 					$data = [$firstname, $lastname, $email, $contractdays];
 					$work_calendar = $rowselect["work_calendar"];

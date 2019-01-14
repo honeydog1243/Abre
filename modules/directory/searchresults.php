@@ -17,10 +17,11 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once('permissions.php');
+	$portal_root = getConfigPortalRoot();
 
 	//Display Search Results
 	if($pageaccess == 1 or $_SESSION['usertype'] == "staff"){
@@ -47,13 +48,13 @@
 
 		//filter results based on the query
 		if($searchquery != ""){
-			$querycount = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE (LOWER(lastname) LIKE '%$searchquery%' OR LOWER(firstname) LIKE '%$searchquery%' OR LOWER(email) LIKE '%$searchquery%' OR LOWER(location) LIKE '%$searchquery%' OR LOWER(classification) LIKE '%$searchquery%') AND archived = 0 ORDER BY firstname, lastname";
+			$querycount = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE (LOWER(lastname) LIKE '%$searchquery%' OR LOWER(firstname) LIKE '%$searchquery%' OR LOWER(email) LIKE '%$searchquery%' OR LOWER(location) LIKE '%$searchquery%' OR LOWER(classification) LIKE '%$searchquery%') AND archived = 0 AND siteID = '".$_SESSION['siteID']."' ORDER BY firstname, lastname";
 
-			$sql = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE (LOWER(lastname) LIKE '%$searchquery%' OR LOWER(firstname) LIKE '%$searchquery%' OR LOWER(email) LIKE '%$searchquery%' OR LOWER(location) LIKE '%$searchquery%' OR LOWER(classification) LIKE '%$searchquery%') AND archived = 0 ORDER BY firstname, lastname LIMIT $LowerBound, $PerPage";
+			$sql = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE (LOWER(lastname) LIKE '%$searchquery%' OR LOWER(firstname) LIKE '%$searchquery%' OR LOWER(email) LIKE '%$searchquery%' OR LOWER(location) LIKE '%$searchquery%' OR LOWER(classification) LIKE '%$searchquery%') AND archived = 0 AND siteID = '".$_SESSION['siteID']."' ORDER BY firstname, lastname LIMIT $LowerBound, $PerPage";
 		}else{
-			$querycount = $sql = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE archived = 0 ORDER BY firstname, lastname";
+			$querycount = $sql = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE archived = 0 AND siteID = '".$_SESSION['siteID']."' ORDER BY firstname, lastname";
 
-			$sql = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE archived = 0 ORDER BY firstname, lastname LIMIT $LowerBound, $PerPage";
+			$sql = "SELECT id, firstname, lastname, location, email, title, picture, extension FROM directory WHERE archived = 0 AND siteID = '".$_SESSION['siteID']."' ORDER BY firstname, lastname LIMIT $LowerBound, $PerPage";
 		}
 
 		$result = $db->query($sql);
@@ -88,22 +89,22 @@
 			$lastname = stripslashes($lastname);
 			$location = htmlspecialchars($row["location"], ENT_QUOTES);
 			$location = stripslashes($location);
-			$email = htmlspecialchars($row["email"], ENT_QUOTES);
+			$email = $row["email"];
 			$email = stripslashes($email);
 			$title = htmlspecialchars($row["title"], ENT_QUOTES);
 			$title = stripslashes($title);
 			$extension = htmlspecialchars($row["extension"], ENT_QUOTES);
 			$extension = stripslashes($extension);
 			$picture = htmlspecialchars($row["picture"], ENT_QUOTES);
-						
+
 			if (strpos($picture, 'http') === false) {
-		
+
 				if($picture == ""){
 					$picture = $portal_root."/modules/directory/images/user.png";
 				}else{
 					$picture = $portal_root."/modules/directory/serveimage.php?file=$picture";
 				}
-				
+
 			}
 
 			//display the results in table

@@ -17,13 +17,14 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require(dirname(__FILE__) . '/../../core/abre_version.php');
 	//Google API PHP library files
 	require_once(dirname(__FILE__).'/../../core/google/vendor/autoload.php');
+	$portal_root = getConfigPortalRoot();
 
 
 	if(admin()){
@@ -31,12 +32,12 @@
 		//Create Client request to access Google API
 		$client = new Google_Client();
 		$client->setApplicationName("Abre");
-		$client_id = constant("GOOGLE_CLIENT_ID");
+		$client_id = getConfigGoogleClientID();
 		$client->setClientId($client_id);
-		$client_secret = constant("GOOGLE_CLIENT_SECRET");
+		$client_secret = getConfigGoogleClientSecret();
 		$client->setClientSecret($client_secret);
 		$client->setRedirectUri($portal_root.'/modules/settings/usage.php');
-		$simple_api_key = constant("GOOGLE_API_KEY");
+		$simple_api_key = getConfigGoogleApiKey();
 		$client->setDeveloperKey($simple_api_key);
 		$client->setAccessType("offline");
 		$client->setApprovalPrompt("auto");
@@ -57,9 +58,9 @@
 			$tokenToStore = json_encode($_SESSION["access_token"]);
 
 			$stmt = $db->stmt_init();
-			$sql = "UPDATE users SET refresh_token = ? WHERE email = ?";
+			$sql = "UPDATE users SET refresh_token = ? WHERE email = ? AND siteID = ?";
 			$stmt->prepare($sql);
-			$stmt->bind_param("ss", $tokenToStore, $_SESSION["useremail"]);
+			$stmt->bind_param("ssi", $tokenToStore, $_SESSION["useremail"], $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 			$db->close();

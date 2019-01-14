@@ -17,11 +17,13 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require(dirname(__FILE__) . '/../../core/abre_version.php');
+
+	$siteColor = getSiteColor();
 
 	//Settings
 	if(admin()){
@@ -42,7 +44,7 @@
 						$currentlink = "https://github.com/abreio/Abre/archive/".$currentversion.".zip";
 						echo "<div class='row'>";
 							echo "<div class='col s12'>";
-								echo "<div id='updateabre' data-version='$currentlink' class='card white-text pointer' style='background-color:".getSiteColor()."; padding:20px;'>A new version of Abre is available. <u>Click here to update to $currentversion.</u></div>";
+								echo "<div id='updateabre' data-version='$currentlink' class='card white-text pointer' style='background-color:".$siteColor."; padding:20px;'>A new version of Abre is available. <u>Click here to update to $currentversion.</u></div>";
 							echo "</div>";
 						echo "</div>";
 					}
@@ -76,7 +78,7 @@
 					echo "</div>";
 					echo "<div class='row'>";
 						echo "<div class='input-field col s12'>";
-						    echo "<input placeholder='Enter a Site Color' value='".getSiteColor()."' id='sitecolor' name='sitecolor' type='text' autocomplete='off'>";
+						    echo "<input placeholder='Enter a Site Color' value='".$siteColor."' id='sitecolor' name='sitecolor' type='text' autocomplete='off'>";
 							echo "<label class='active' for='sitecolor'>Site Color</label>";
 						echo "</div>";
 					echo "</div>";
@@ -129,7 +131,7 @@
 							    echo "<input type='hidden' name='sitelogoexisting' value='$sitelogoexisting'>";
 							    echo "<input type='file' name='sitelogo' id='sitelogo' style='display:none;'>";
 							}
-							echo "<div><button class='sitelogobutton modal-action waves-effect btn-flat white-text' style='background-color: ".getSiteColor()."'>Update Site Icon</button></div>";
+							echo "<div><button class='sitelogobutton modal-action waves-effect btn-flat white-text' style='background-color: ".$siteColor."'>Update Site Icon</button></div>";
 						echo "</div>";
 					echo "</div>";
 
@@ -138,7 +140,7 @@
 						echo "<div class='col s12'>";
 							echo "<h4>Abre Community</h4>";
 							echo "<input type='checkbox' class='formclick filled-in' id = 'abre_community' name='abre_community' value='checked' ".getSiteAbreCommunity()."/>";
-							echo "<label for='abre_community' style = 'color:#000; margin-bottom:30px;'> Join the Abre Community.<a href='https://abre.io/community/' style='color:".getSiteColor().";' target='_blank'> Learn more</a></label>";
+							echo "<label for='abre_community' style = 'color:#000; margin-bottom:30px;'> Join the Abre Community.<a href='https://abre.io/community/' style='color:".$siteColor.";' target='_blank'> Learn more</a></label>";
 						echo "</div>";
 						echo "<div id='community_information'>";
 							echo "<div class='row'>";
@@ -169,7 +171,7 @@
 					//Save Button
 					echo "<div class='row'>";
 						echo "<div class='col s12'>";
-							echo "<button type='submit' class='modal-action waves-effect btn-flat white-text' style='background-color: ".getSiteColor()."'>Save Changes</button>";
+							echo "<button type='submit' class='modal-action waves-effect btn-flat white-text' style='background-color: ".$siteColor."'>Save Changes</button>";
 						echo "</div>";
 					echo "</div>";
 

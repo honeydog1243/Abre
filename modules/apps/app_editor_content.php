@@ -18,13 +18,14 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	$portal_root = getConfigPortalRoot();
 
 	if(admin()){
 
 		echo "<table class='bordered' id='appsort'>";
-			$query = "SELECT id, title, link, icon, staff, student, parent, staff_building_restrictions, student_building_restrictions FROM apps ORDER BY sort";
+			$query = "SELECT id, title, link, icon, staff, student, parent, staff_building_restrictions, student_building_restrictions FROM apps WHERE siteID = '".$_SESSION['siteID']."' ORDER BY sort";
 			$dbreturn = databasequery($query);
 			foreach ($dbreturn as $value){
 				$id = $value['id'];
@@ -125,86 +126,99 @@
 				//Get App Data
 				$(".passappdata").unbind().click(function() {
 
-					//Fill Modal with Data
+					$("#viewloadaddeditapploader").show();
+					$("#loadaddeditapp").hide();
+
 					var apptitle = atob($(this).data('apptitle'));
 					$("#editmodaltitle").text(apptitle);
-					$("#app_name").val(apptitle);
 					var applink = atob($(this).data('applink'));
-					$("#app_link").val(applink);
 					var appicon = $(this).data('appicon');
-					$('[name=app_icon]').val(appicon);
-					$("select").imagepicker();
-
 					var appid = $(this).data('appid');
-					$("#app_id").val(appid);
-
 					var appstaff = $(this).data('appstaff');
-					if(appstaff == 1){
-						$('#app_staff').prop('checked', true);
-					}else{
-						$('#app_staff').prop('checked', false);
-					}
-
 					var appstudents = $(this).data('appstudents');
-					if(appstudents == 1){
-						$('#app_students').prop('checked', true);
-					}else{
-						$('#app_students').prop('checked', false);
-					}
-
 					var appparents = $(this).data('appparents');
-					if(appparents == 1){
-						$('#app_parents').prop('checked', true);
-					}else{
-						$('#app_parents').prop('checked', false);
-					}
-
-					if($("#app_staff").is(':checked')){
-						$("#appsStaffRestrictionsDiv").show();
-					}else{
-						$("#appsStaffRestrictionsDiv").hide();
-					}
-
-					if($("#app_students").is(':checked')){
-						$("#appsStudentRestrictionsDiv").show();
-					}else{
-						$("#appsStudentRestrictionsDiv").hide();
-					}
-
 					var staffRestrictions = $(this).data('staffrestrictions');
-					if(staffRestrictions != ""){
-						if(staffRestrictions.indexOf(',') >= 0){
-							var dataarray = staffRestrictions.split(",");
-							$("#appsStaffRestrictions").val(dataarray);
-						}else{
-							$("#appsStaffRestrictions").val(staffRestrictions);
-						}
-					}else{
-						$("#appsStaffRestrictions").val('No Restrictions');
-					}
-
 					var studentRestrictions = $(this).data('studentrestrictions');
-					if(studentRestrictions != ""){
-						if(studentRestrictions.indexOf(',') >= 0){
-							var dataarray = studentRestrictions.split(",");
-							for(var i = 0; i < dataarray.length; i++){
-								dataarray[i] = dataarray[i].trim();
-							}
-							$("#appsStudentRestrictions").val(dataarray);
-						}else{
-							$("#appsStudentRestrictions").val(studentRestrictions);
-						}
-					}else{
-						$("#appsStudentRestrictions").val('No Restrictions');
-					}
 
 					$('#addeditapp').openModal({
 						in_duration: 0,
 						out_duration: 0,
 						ready: function() {
+
 							$('select').material_select();
 							$('.modal-content').scrollTop(0);
-					  },
+
+							$('#loadaddeditapp').load('modules/apps/app_addapp_content.php', function(){
+
+								$("#viewloadaddeditapploader").hide();
+								$("#loadaddeditapp").show();
+
+								//Fill Modal with Data
+								$("#app_name").val(apptitle);
+								$("#app_link").val(applink);
+								$('[name=app_icon]').val(appicon);
+								$("select").imagepicker();
+								$("#app_id").val(appid);
+
+								if(appstaff == 1){
+									$('#app_staff').prop('checked', true);
+								}else{
+									$('#app_staff').prop('checked', false);
+								}
+
+								if(appstudents == 1){
+									$('#app_students').prop('checked', true);
+								}else{
+									$('#app_students').prop('checked', false);
+								}
+
+								if(appparents == 1){
+									$('#app_parents').prop('checked', true);
+								}else{
+									$('#app_parents').prop('checked', false);
+								}
+
+								if($("#app_staff").is(':checked')){
+									$("#appsStaffRestrictionsDiv").show();
+								}else{
+									$("#appsStaffRestrictionsDiv").hide();
+								}
+
+								if($("#app_students").is(':checked')){
+									$("#appsStudentRestrictionsDiv").show();
+								}else{
+									$("#appsStudentRestrictionsDiv").hide();
+								}
+
+								staffRestrictions = String(staffRestrictions);
+								if(staffRestrictions != ""){
+									if(staffRestrictions.indexOf(',') >= 0){
+										var dataarray = staffRestrictions.split(",");
+										$("#appsStaffRestrictions").val(dataarray);
+									}else{
+										$("#appsStaffRestrictions").val(staffRestrictions);
+									}
+								}else{
+									$("#appsStaffRestrictions").val('No Restrictions');
+								}
+
+								studentRestrictions = String(studentRestrictions);
+								if(studentRestrictions != ""){
+									if(studentRestrictions.indexOf(',') >= 0){
+										var dataarray = studentRestrictions.split(",");
+										for(var i = 0; i < dataarray.length; i++){
+											dataarray[i] = dataarray[i].trim();
+										}
+										$("#appsStudentRestrictions").val(dataarray);
+									}else{
+										$("#appsStudentRestrictions").val(studentRestrictions);
+									}
+								}else{
+									$("#appsStudentRestrictions").val('No Restrictions');
+								}
+							});
+						},
+
 					});
 				});
 

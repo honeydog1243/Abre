@@ -18,13 +18,13 @@
 
 //Required configuration files
 require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 if(admin() || isStreamHeadlineAdministrator()){
 
   echo "<table class='bordered' id='streamsort'>";
-  $query = "SELECT id, title, url, `group`, required, color, staff_building_restrictions, student_building_restrictions FROM streams ORDER BY title";
+  $query = "SELECT id, title, url, `group`, required, color, staff_building_restrictions, student_building_restrictions FROM streams WHERE siteID = '".$_SESSION['siteID']."' ORDER BY title";
   $dbreturn = databasequery($query);
   foreach($dbreturn as $value){
     $id = $value['id'];
@@ -137,6 +137,7 @@ if(admin() || isStreamHeadlineAdministrator()){
         }
 
         var staffRestrictions = $(this).data('staffrestrictions');
+        staffRestrictions = String(staffRestrictions);
         if(staffRestrictions != ""){
           if(staffRestrictions.indexOf(',') >= 0){
             var dataarray = staffRestrictions.split(",");
@@ -149,6 +150,7 @@ if(admin() || isStreamHeadlineAdministrator()){
         }
 
         var studentRestrictions = $(this).data('studentrestrictions');
+        studentRestrictions = String(studentRestrictions);
         if(studentRestrictions != ""){
           if(studentRestrictions.indexOf(',') >= 0){
             var dataarray = studentRestrictions.split(",");

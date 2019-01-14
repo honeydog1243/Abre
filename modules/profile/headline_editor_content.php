@@ -18,14 +18,14 @@
 
 //Required configuration files
 require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 if(admin() || isStreamHeadlineAdministrator()){
 
   echo "<table class='bordered' id='headlinestable'>";
   $today = date("Y-m-d");
-  $query = "SELECT id, title, purpose, content, form_id, video_id, groups, date_restriction, start_date, end_date, required FROM headlines ORDER BY start_date";
+  $query = "SELECT id, title, purpose, content, form_id, video_id, groups, date_restriction, start_date, end_date, required FROM headlines WHERE siteID = '".$_SESSION['siteID']."' ORDER BY start_date";
   $dbreturn = databasequery($query);
   $i = 0;
   foreach($dbreturn as $value){

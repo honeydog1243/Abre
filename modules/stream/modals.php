@@ -21,6 +21,8 @@
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
+	$siteColor = getSiteColor();
+
 	//Check for variable in url
 	if(isset($_GET['discussion'])){
 		$discussionid = $_GET['discussion'];
@@ -28,7 +30,7 @@
 	}
 
 	if($db->query("SELECT * FROM Abre_Students LIMIT 1")){
-		$sql = "SELECT SchoolCode, SchoolName FROM Abre_Students ORDER BY SchoolCode";
+		$sql = "SELECT SchoolCode, SchoolName FROM Abre_Students WHERE siteID = '".$_SESSION['siteID']."' ORDER BY SchoolCode";
 		$schoolResults = databasequery($sql);
 	}
 	if(!isset($schoolResults)){
@@ -45,7 +47,7 @@
 		<div id="sharecard" class="modal modal-fixed-footer modal-mobile-full" style="max-width: 600px;">
 			<form>
 				<div class="modal-content" style="padding: 0px !important;">
-					<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+					<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 						<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Share</span></div>
 						<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 					</div>
@@ -60,11 +62,11 @@
 	 	</div>
 
 	 	<!-- Stream Announcement -->
-		<div id="streampost" class="modal modal-fixed-footer modal-mobile-full">
-			<form id="form-streampost" method="post" enctype='multipart/form-data' action="modules/stream/save_announcement.php">
+		<div id="streampost" class="fullmodal modal modal-fixed-footer modal-mobile-full" style='max-width:800px;'>
+			<form id="form-streampost" method="post" enctype='multipart/form-data' action="modules/stream/action_save_announcement.php">
 				<div class="modal-content" style="padding: 0px !important;">
-					<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
-						<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">New Announcement</span></div>
+					<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
+						<div class='col s11'><span id="post_header" class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
 						<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 					</div>
 					<div style='padding: 0px 24px 0px 24px;'>
@@ -75,11 +77,26 @@
 								<select id="post_stream" name="post_stream" required>
 									<option value="" disabled selected>Choose a Stream</option>
 									<?php
-										$sql = "SELECT title FROM streams";
+										$schoolCodeArray = getRestrictions();
+
+										$sql = "SELECT title, staff_building_restrictions FROM streams WHERE siteID = '".$_SESSION['siteID']."'";
 										$result = $db->query($sql);
 										while($value = $result->fetch_assoc()){
 											$streamTitle = $value['title'];
-											echo "<option value='$streamTitle'>$streamTitle</option>";
+											$streamTitleEncoded = htmlspecialchars($streamTitle, ENT_QUOTES);
+											$staffBuildingRestrictions = $value['staff_building_restrictions'];
+											$staffBuildingRestrictionsArray = explode(",", $staffBuildingRestrictions);
+											if(admin() || $staffBuildingRestrictions == "No Restrictions" || $staffBuildingRestrictions == NULL){
+												echo "<option value='$streamTitleEncoded'>$streamTitle</option>";
+											}else{
+												if(!empty($schoolCodeArray)){
+													foreach($schoolCodeArray as $code){
+														if(in_array($code, $staffBuildingRestrictionsArray)){
+															echo "<option value='$streamTitleEncoded'>$streamTitle</option>";
+														}
+													}
+												}
+											}
 										}
 									?>
 								</select>
@@ -87,14 +104,14 @@
 						</div>
 						<div class="row">
 							<div class="input-field col s12">
-								<input type="text" name="post_title" id="post_title" autocomplete="off" placeholder="Enter an announcement title" required>
+								<input type="text" name="post_title" id="post_title" autocomplete="off" placeholder="Enter Announcement Title" required>
 								<label for="post_title" class="active">Title</label>
 							</div>
 						</div>
 						<div class="row">
 							<div class="input-field col s12">
 								<p class='black-text' style="font-weight: 500;">Content</p>
-								<textarea placeholder="Enter your announcement content" id="post_content" name="post_content" class='wysiwyg'></textarea>
+								<textarea placeholder="Enter your announcement content" class="announcement_wysiwyg" id="post_content" name="post_content"></textarea>
 							</div>
 						</div>
 
@@ -107,11 +124,14 @@
 							</div>
 						</div>
 
+						<input type='hidden' id='post_id' name='post_id'>
 					</div>
 
 			</div>
 			<div class="modal-footer">
-				<button class="btn waves-effect btn-flat white-text" id='custompostbutton' type="submit" name="action" style='background-color:<?php echo getSiteColor(); ?>'>Post</button>
+				<button class="btn waves-effect btn-flat white-text" id='custompostbutton' type="submit" name="action" style='background-color:<?php echo $siteColor; ?>'>Post</button>
+				<button class="btn waves-effect btn-flat white-text" id='custompostsavebutton' style='background-color:<?php echo $siteColor; ?>; display:none;'>Save</button>
+				<button class="btn waves-effect btn-flat white-text" id='custompostdeletebutton' style='background-color:<?php echo $siteColor; ?>; display:none; margin-right:5px;'>Delete</button>
 				<p id="errorMessage" style="display:none; float:right; color:red; margin:6px 0; padding-right:10px;"></p>
 			</div>
 			</form>
@@ -122,11 +142,11 @@
 	?>
 
 	<!-- Read and Comment Modal -->
-	<div id="addstreamcomment" class="modal modal-fixed-footer modal-mobile-full">
+	<div id="addstreamcomment" class="fullmodal modal modal-fixed-footer modal-mobile-full" style='max-width:700px;'>
 		<div id="commentloader" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width:100%"></div>
-		<form id="form-addstreamcomment" method="post" action="modules/stream/comment_add.php">
+		<form id="form-addstreamcomment" method="post" action="modules/stream/action_comment_add.php">
 			<div class="modal-content" id="modal-content-section" style="padding: 0px !important;">
-				<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+				<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 					<div class='col s11'><span class="truncate" id='readStreamTitle' style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
 					<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 				</div>
@@ -142,10 +162,10 @@
 					</div>
 					<div class="row">
 						<div class='input-field col s12'>
-							<p class='wrap-links' id="streamExcerptDisplay" name="streamExcerptDisplay" style="font-size:16px; line-height:1.8em"></p>
+							<p class='wrap-links excerpt' id="streamExcerptDisplay" name="streamExcerptDisplay" style="font-size:16px; line-height:1.8em"></p>
 						</div>
 						<div class='input-field col s12'>
-							<a id="streamLink" href="" style="text-decoration: underline; color: <?php echo getSiteColor(); ?>;" target="_blank">View full article</a>
+							<a id="streamLink" href="" style="text-decoration: underline; color: <?php echo $siteColor; ?>;" target="_blank">View full article</a>
 						</div>
 					</div>
 					<?php
@@ -159,7 +179,7 @@
 
 						<div class="row">
 							<div class="input-field col s12" style="padding-bottom: 5px;">
-								<button class="btn waves-effect btn-flat white-text" type="submit" name="action" style='margin-top:-20px; background-color:<?php echo getSiteColor(); ?>'>Post</button><br><br>
+								<button class="btn waves-effect btn-flat white-text" type="submit" name="action" style='margin-top:-20px; background-color:<?php echo $siteColor; ?>'>Post</button><br><br>
 							</div>
 						</div>
 
@@ -177,7 +197,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button class="modal-action modal-close waves-effect btn-flat white-text" type="button" style='background-color: <?php echo getSiteColor(); ?>'>Close</button>
+				<button class="modal-action modal-close waves-effect btn-flat white-text" type="button" style='background-color: <?php echo $siteColor; ?>'>Close</button>
 			</div>
 		</form>
 	</div>
@@ -186,7 +206,7 @@
 	<div id="editwidgets" class="modal modal-mobile-full" style="max-width: 600px;">
 		<form>
 			<div class="modal-content" style="padding: 0px !important;">
-				<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+				<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 					<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Edit Widgets</span></div>
 					<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 				</div>
@@ -196,7 +216,7 @@
 							<?php
 
 								//Check to see if there is hidden widgets
-								$sql = "SELECT widgets_hidden FROM profiles WHERE email = '".$_SESSION['useremail']."'";
+								$sql = "SELECT widgets_hidden FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 								$result = $db->query($sql);
 								$widgets_order = NULL;
 								$widgets_hidden = NULL;
@@ -270,29 +290,55 @@
    		</form>
  	</div>
 
-<script src='core/tinymce/js/tinymce/tinymce.min.js'></script>
+	<script src="/core/js/drive-picker.php"></script>
 
 <script>
-
 	$(function(){
-
 		//Material Design Dropdown Selects
 		$('select').material_select();
 
 		//Start TinyMCE
+		tinymce.remove('.announcement_wysiwyg');
 		tinymce.init({
-			selector: '.wysiwyg', branding: false, height:200, menubar:false, resize: false, statusbar: false, autoresize_min_height: 200, autoresize_max_height: 400,
-			content_css : "/core/css/tinymce.0.0.6.css?" + new Date().getTime(),
+			selector: '.announcement_wysiwyg',
+			branding: false,
+			height: 200,
+			menubar: false,
+			resize: false,
+			statusbar: false,
+			autoresize_min_height: 200,
+			autoresize_max_height: 400,
+			code_dialog_height: 200,
+			content_css : "/core/css/tinymce.0.0.11.css",
 			oninit : "setPlainText",
-			plugins: 'paste print preview fullpage autolink fullscreen image link media template codesample charmap hr nonbreaking toc insertdatetime advlist lists textcolor imagetools contextmenu textpattern autoresize',
-			toolbar: 'bold italic underline link | numlist bullist | media | removeformat',
-			image_advtab: true });
+			plugins: 'paste print autolink fullscreen image link media lists imagetools autoresize textcolor code table colorpicker',
+			toolbar: [
+				'bold italic underline | fontsizeselect forecolor backcolor | alignleft aligncenter alignright | numlist bullist | indent outdent',
+				'table | link drive image media | removeformat | code'
+			],
+			image_advtab: true,
+			file_picker_callback: filePickerCallback,
+			file_picker_types: "image",
+			images_upload_url: '/core/abre_tiny_upload.php',
+			automatic_uploads: true,
+			fontsize_formats: "8pt 10pt 11pt 12pt 14pt 18pt 24pt 36pt",
+			<?php
+			if($_SESSION['auth_service'] == "google"){
+			?>
+				setup: editor => {
+					loadGoogleDrivePickerForTiny(editor);
+				},
+			<?php
+			}
+			?>
+			default_link_target: "_blank"
+		});
 
 		//Provide image upload on icon click
 		$(".custompostimage").unbind().click(function(event){
 			event.preventDefault();
 			$("#customimage").click();
-	  	});
+	  });
 
 		//Submit form if image if changed
 		$("#customimage").change(function (){
@@ -327,8 +373,8 @@
 
         	selectedWidgets = selectedWidgets.replace(/^,|,$/g,'');
 
-			$.post("modules/stream/save_widget_visibility.php", {widgets: selectedWidgets}, function() {
-				$("#streamwidgets").load("modules/<?php echo basename(__DIR__); ?>/widgets.php");
+			$.post("modules/stream/action_save_widget_visibility.php", {widgets: selectedWidgets}, function() {
+				$("#streamwidgets").load("modules/<?php echo basename(__DIR__); ?>/view_widgets.php");
 			});
 
 		});
@@ -349,17 +395,17 @@
 			})
 			//Show the notification
 			.done(function(response) {
-				$( "#streamComments" ).load( "modules/stream/comment_list.php?url="+response, function() {
+				$( "#streamComments" ).load( "modules/stream/view_comment_list.php?url="+response, function() {
 					$("textarea").val('');
 					$("#commentstatustext").text("Write a comment");
 					$(".modal-content #streamUrl").val(response);
 					var element = document.getElementById("commentthreadbox");
 					element.scrollTop = element.scrollHeight;
-					$.post( "modules/<?php echo basename(__DIR__); ?>/update_card.php", {url: url, redirect: redirect, type: "comment"})
+					$.post( "modules/<?php echo basename(__DIR__); ?>/action_update_card.php", {url: url, redirect: redirect, type: "comment"})
 					.done(function(data) {
 						$("#"+id).prev().removeClass("mdl-color-text--grey-600");
-						$("#"+id).prev().css("color", "<?php echo getSiteColor(); ?>");
-						$("#"+id).css("color", "<?php echo getSiteColor(); ?>");
+						$("#"+id).prev().css("color", "<?php echo $siteColor; ?>");
+						$("#"+id).css("color", "<?php echo $siteColor; ?>");
 						$("#"+id).html(data.count);
 						if(redirect == "comments"){
 							if(data.currentusercount > 0){
@@ -374,34 +420,17 @@
 			})
 		});
 
-		$("#post_staff").change(function(){
-			if($(this).is(':checked')){
-				$("#postStaffRestrictionsDiv").show();
-			}else{
-				$("#postStaffRestrictionsDiv").hide();
-			}
-		});
-
-		$("#post_students").change(function(){
-			if($(this).is(':checked')){
-				$("#postStudentRestrictionsDiv").show();
-			}else{
-				$("#postStudentRestrictionsDiv").hide();
-			}
-		});
-
 		//Submit the Custom Post
 		$("#form-streampost").submit(function(event) {
 			event.preventDefault();
 			$("errorMessage").hide();
+			$('#custompostsavebutton').html("Saving...");
 			$('#custompostbutton').html("Posting...");
-			var title = $("#post_title").val();
-			var stream = $("#post_stream").val();
-			var content = $("#post_content").val();
 			var data = new FormData($(this)[0]);
 
 			$.ajax({ type: 'POST', url: $(this).attr('action'), data: data, contentType: false, processData: false })
 			.done(function(response){
+				$('#custompostsavebutton').html("Save");
 				$('#custompostbutton').html("Post");
 				if(response.status == "Success"){
 					$('#streampost').closeModal({ in_duration: 0, out_duration: 0, });

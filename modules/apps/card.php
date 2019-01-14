@@ -20,7 +20,8 @@
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_google_login.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	$portal_root = getConfigPortalRoot();
 
 	//Set access token
 	if (isset($_SESSION['access_token']) && $_SESSION['access_token']){ $client->setAccessToken($_SESSION['access_token']); }
@@ -37,7 +38,7 @@
 
 		<?php
 
-			$query = "SELECT apps_order FROM profiles where email = '".$_SESSION['useremail']."'";
+			$query = "SELECT apps_order FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 			$gafecards = databasequery($query);
 			foreach ($gafecards as $value){
 				$apps_order = htmlspecialchars($value["apps_order"], ENT_QUOTES);
@@ -56,7 +57,7 @@
 				foreach($order as $value){
 					if ($appcount++ < 6){
 						include(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-						$sql = "SELECT id, title, image, link FROM apps WHERE id = '$value'";
+						$sql = "SELECT id, title, image, link FROM apps WHERE id = '$value' AND siteID = '".$_SESSION['siteID']."'";
 						$result = $db->query($sql);
 						while($row = $result->fetch_assoc()){
 							$id = htmlspecialchars($row["id"], ENT_QUOTES);
@@ -73,7 +74,7 @@
 				$db->close();
 			}else{
 				include(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-				$sql = "SELECT id, title, image, link FROM apps WHERE ".$_SESSION['usertype']." = 1 AND required = 1 LIMIT 6";
+				$sql = "SELECT id, title, image, link FROM apps WHERE ".$_SESSION['usertype']." = 1 AND required = 1 AND siteID = '".$_SESSION['siteID']."' LIMIT 6";
 				$result = $db->query($sql);
 				while($row = $result->fetch_assoc()){
 					$id = htmlspecialchars($row["id"], ENT_QUOTES);

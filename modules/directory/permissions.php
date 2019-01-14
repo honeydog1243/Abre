@@ -17,26 +17,26 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 
 	//Check for Admin Authentication
 	$pageaccess = 0;
-	$sql = "SELECT * FROM directory WHERE email = '".$_SESSION['useremail']."' AND admin = 1 AND archived = 0";
+	$sql = "SELECT * FROM directory WHERE email = '".$_SESSION['escapedemail']."' AND (admin = 1 OR superadmin = 1) AND archived = 0 AND siteID = '".$_SESSION['siteID']."'";
 	$result = $db->query($sql);
 	while($row = $result->fetch_assoc()){
 		$pageaccess = 1;
 	}
 
-	$sql = "SELECT superadmin FROM users WHERE email='".$_SESSION['useremail']."' AND (superadmin = 1 OR admin = 1)";
+	$sql = "SELECT superadmin FROM users WHERE email='".$_SESSION['escapedemail']."' AND (superadmin = 1 OR admin = 1) AND siteID = '".$_SESSION['siteID']."'";
 	$result = $db->query($sql);
 	while($row = $result->fetch_assoc()){
 		$pageaccess = 1;
 	}
 
-	$sql = "SELECT * FROM directory WHERE email = '".$_SESSION['useremail']."' AND admin = 2 AND archived = 0";
+	$sql = "SELECT * FROM directory WHERE email = '".$_SESSION['escapedemail']."' AND admin = 2 AND archived = 0 AND siteID = '".$_SESSION['siteID']."'";
 	$result = $db->query($sql);
 	while($row = $result->fetch_assoc()){
 		$pageaccess = 2;

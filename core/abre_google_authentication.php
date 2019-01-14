@@ -22,17 +22,17 @@
 	//Create Client request to access Google API
 	$client = new Google_Client();
 	$client->setApplicationName("Abre");
-	$client_id = constant("GOOGLE_CLIENT_ID");
+	$client_id = getConfigGoogleClientID();
 	$client->setClientId($client_id);
-	$client_secret = constant("GOOGLE_CLIENT_SECRET");
+	$client_secret = getConfigGoogleClientSecret();
 	$client->setClientSecret($client_secret);
-	$redirect_uri = constant("GOOGLE_REDIRECT");
+	$redirect_uri = getConfigGoogleRedirect();
 	$client->setRedirectUri($redirect_uri);
-	$simple_api_key = constant("GOOGLE_API_KEY");
+	$simple_api_key = getConfigGoogleApiKey();
 	$client->setDeveloperKey($simple_api_key);
 	$client->setAccessType("offline");
 	$client->setApprovalPrompt("auto");
-	$scopes = unserialize(constant("GOOGLE_SCOPES"));
+	$scopes = getConfigGoogleScopes();
 	$client->setScopes($scopes);
 	$client->setIncludeGrantedScopes(true);
 

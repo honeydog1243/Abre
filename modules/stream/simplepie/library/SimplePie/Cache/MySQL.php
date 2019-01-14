@@ -54,9 +54,9 @@
  * @subpackage Caching
  */
 
-//Required configuration files 
-require(dirname(__FILE__) . '/../../../../../../configuration.php');
- 
+//Required configuration files
+require_once(dirname(__FILE__) . '/../../../../../../core/abre_functions.php');
+
 class SimplePie_Cache_MySQL extends SimplePie_Cache_DB
 {
 	/**
@@ -100,17 +100,25 @@ class SimplePie_Cache_MySQL extends SimplePie_Cache_DB
 				'cache_purge_time' => 2592000
 			),
 		);
-		
+
 		$this->options = SimplePie_Misc::array_merge_recursive($this->options, SimplePie_Cache::parse_URL($location));
 
 		$this->options['extras']['prefix'] = 'sp_';
-		$db_user = constant("DB_USER");
-		$db_password = constant("DB_PASSWORD");
-		$db_name = constant("DB_NAME");
-		$db_socket = constant("DB_SOCKET");
-		$db_host = constant("DB_HOST");
-		$cloudsetting=constant("USE_GOOGLE_CLOUD");
-		
+    $cloudsetting = getenv("USE_GOOGLE_CLOUD");
+    if($cloudsetting == "true"){
+      $db_user = getenv("DB_USER");
+      $db_password = getenv("DB_PASSWORD");
+      $db_name = getenv("DB_NAME");
+      $db_socket = getenv("DB_SOCKET");
+      $db_host = getenv("DB_HOST");
+    }else{
+      $db_user = constant("DB_USER");
+      $db_password = constant("DB_PASSWORD");
+      $db_name = constant("DB_NAME");
+      $db_socket = constant("DB_SOCKET");
+      $db_host = constant("DB_HOST");
+    }
+
 		// Path is prefixed with a "/"
 		$this->options['dbname'] = substr($this->options['path'], 1);
 

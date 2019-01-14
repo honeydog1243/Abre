@@ -17,13 +17,14 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	$portal_path_root = getConfigPortalPathRoot();
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
@@ -56,18 +57,18 @@
 
 			if ($cloudsetting=="true") {
 				$storage = new StorageClient([
-					'projectId' => constant("GC_PROJECT")
-				]);	
-				$bucket = $storage->bucket(constant("GC_BUCKET"));		
+					'projectId' => getenv("GC_PROJECT")
+				]);
+				$bucket = $storage->bucket(getenv("GC_BUCKET"));
 
 				$cloud_uploaddir = "content/";
 				//Delete previous image
 				$sitelogoexisting = getSiteLogo();
-				if($sitelogoexisting != '/core/images/abre/abre_glyph.png'){ 
+				if($sitelogoexisting != '/core/images/abre/abre_glyph.png'){
 					$logo = getSettingsDbValue('sitelogo');
 					$oldimagelocation = $cloud_uploaddir.$logo;
 
-					if ($bucket->object($oldimagelocation)->exists()){
+					if($bucket->object($oldimagelocation)->exists()){
 						$object = $bucket->object($oldimagelocation);
 						$object->delete();
 					}
@@ -96,18 +97,22 @@
 				$sitelogoexisting = getSiteLogo();
 				$oldimagelocation = $portal_path_root.$sitelogoexisting;
 				if($sitelogoexisting != '/core/images/abre/abre_glyph.png'){ unlink($oldimagelocation); }
-	
+
 				//Upload new image
 				if (!file_exists("$portal_path_root/content/")){ mkdir("$portal_path_root/content/"); }
 				$sitelogo = $uploaddir . $sitelogofilename;
-				move_uploaded_file($_FILES['sitelogo']['tmp_name'], $sitelogo);	
+				move_uploaded_file($_FILES['sitelogo']['tmp_name'], $sitelogo);
 			}
 		}else{
-			$sitelogoexisting = getSiteLogo();
+			if($cloudsetting == "true"){
+				$sitelogoexisting = getSettingsDbValue('sitelogo');
+			}else{
+				$sitelogoexisting = getSiteLogo();
+			}
 			if(strpos($sitelogoexisting, '/content/') !== false){
 				$sitelogoexisting = ltrim($sitelogoexisting,"/content/");
 			}
-			$sitelogofilename=$sitelogoexisting;
+			$sitelogofilename = $sitelogoexisting;
 		}
 
 		$array = [
@@ -131,9 +136,9 @@
 		$json = json_encode($array);
 
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE settings SET options=?";
+		$sql = "UPDATE settings SET options = ? WHERE siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("s", $json);
+		$stmt->bind_param("si", $json, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

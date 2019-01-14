@@ -17,11 +17,14 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	$portal_private_root = getConfigPortalPrivateRoot();
+	$portal_path_root = getConfigPortalPathRoot();
+
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
@@ -39,13 +42,13 @@
 	if($fileextention == '.bmp' or $fileextention == '.BMP'){ header('Content-Type: image/bmp'); }
 	if ($cloudsetting=="true") {
 		$storage = new StorageClient([
-			'projectId' => constant("GC_PROJECT")
-		]);	
-		$bucket = $storage->bucket(constant("GC_BUCKET"));
+			'projectId' => getenv("GC_PROJECT")
+		]);
+		$bucket = $storage->bucket(getenv("GC_BUCKET"));
 		$cloud_book = "private_html/directory/images/employees/$img";
 		$object = $bucket->object($cloud_book);
 		$stream = $object->downloadAsStream();
-		$img = $stream->getContents(); 
+		$img = $stream->getContents();
 	}
 	else {
 		$img = $portal_path_root."/../$portal_private_root/directory/images/employees/".$img;

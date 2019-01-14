@@ -325,7 +325,7 @@ function AddPage($orientation='', $size='')
 		$this->_endpage();
 	}
 	// Start new page
-	$this->_beginpage($orientation,$size);
+	$this->_beginpage($orientation,$size,$rotation);
 	// Set line cap style to square
 	$this->_out('2 J');
 	// Set line width
@@ -1094,7 +1094,7 @@ function _getpagesize($size)
 	}
 }
 
-function _beginpage($orientation, $size)
+function _beginpage($orientation, $size, $rotation)
 {
 	$this->page++;
 	$this->pages[$this->page] = '';

@@ -18,7 +18,7 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	if(admin()){
@@ -47,16 +47,16 @@
 
 		if($appid == ""){
 			$stmt = $db->stmt_init();
-			$sql = "INSERT INTO apps (title,link,icon,image,staff,student,required,parent,staff_building_restrictions,student_building_restrictions) VALUES (?, ?, ?, ?, ?, ?, '1', ?, ?, ?);";
+			$sql = "INSERT INTO apps (title,link,icon,image,staff,student,required,parent,staff_building_restrictions,student_building_restrictions, siteID) VALUES (?, ?, ?, ?, ?, ?, '1', ?, ?, ?, ?);";
 			$stmt->prepare($sql);
-			$stmt->bind_param("ssssiiiss", $appname, $applink, $appicon, $appicon, $appstaff, $appstudents, $appparents, $staffRestrictions, $studentRestrictions);
+			$stmt->bind_param("ssssiiissi", $appname, $applink, $appicon, $appicon, $appstaff, $appstudents, $appparents, $staffRestrictions, $studentRestrictions, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 		}else{
 			$stmt = $db->stmt_init();
-			$sql = "UPDATE apps SET title = ?, link = ?, icon = ?, image = ?, staff = ?, student = ?, parent = ?, staff_building_restrictions = ?, student_building_restrictions = ? WHERE id = ?;";
+			$sql = "UPDATE apps SET title = ?, link = ?, icon = ?, image = ?, staff = ?, student = ?, parent = ?, staff_building_restrictions = ?, student_building_restrictions = ? WHERE id = ? AND siteID = ?;";
 			$stmt->prepare($sql);
-			$stmt->bind_param("ssssiiissi", $appname, $applink, $appicon, $appicon, $appstaff, $appstudents, $appparents, $staffRestrictions, $studentRestrictions, $appid);
+			$stmt->bind_param("ssssiiissii", $appname, $applink, $appicon, $appicon, $appstaff, $appstudents, $appparents, $staffRestrictions, $studentRestrictions, $appid, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 		}

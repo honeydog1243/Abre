@@ -21,6 +21,8 @@
 	require_once('abre_functions.php');
 	require('abre_dbconnect.php');
 
+	$session_user_email=isset($_SESSION['useremail']) ? $_SESSION['useremail']: '';
+	$session_id=isset($_SESSION['siteID']) ? $_SESSION['siteID']: '';
 ?>
 
 <script>
@@ -45,12 +47,24 @@
 		//Start the page
 		function init_page(loader) {
 
+			var cloudSetting = "<?php echo getenv("USE_GOOGLE_CLOUD"); ?>";
+
 			//Selection State coloring for App Drawer
-			$('.mainapplink').css('background-color','#fdfdfd');
-			$('.mainapplink > span').css('color','#000');
-			$('.mainapplink > span > i').css('color','#747474');
+			$('.main-app-link').css('background-color','#fdfdfd');
+			$('.main-app-link > .main-app-link-span').css('color','#000');
+			$('.main-app-link > .main-app-link-span > .main-app-link-icon').css('color','#747474');
+
+			$('.sub-app-link').css('background-color','#fdfdfd');
+			$('.sub-app-link > .sub-app-link-span').css('color','#000');
 			if(window.location.hash) {
 				var hash = window.location.hash.substring(1);
+
+				if (cloudSetting=="true") {
+					Raygun.trackEvent('pageView', {
+						path: '/' + hash
+					});
+				}
+
 				hash = hash.split('/')[0];
 				if($("#abreapp_" + hash).length == 1){
 					$('#abreapp_' + hash).css('background-color','#f3f3f3');
@@ -124,24 +138,15 @@
 					$modulefolders = scandir($moduledirectory);
 
 					foreach($modulefolders as $result){
-
-						//Check if app is turned on
-						$sqlcountcheck = "SELECT COUNT(*) FROM apps_abre WHERE app='$result' AND active='0' LIMIT 1";
-						$sqlcountcheckresult = $db->query($sqlcountcheck);
-						$sqlcountcheckreturn = $sqlcountcheckresult->fetch_assoc();
-						$apprecordexists = $sqlcountcheckreturn["COUNT(*)"];
-						if($apprecordexists == 0)
-						{
-							if(file_exists(dirname(__FILE__) . '/../modules/'.$result.'/routing.php')){
+						if(isAppActive($result)) {
+							if(file_exists(dirname(__FILE__) . '/../modules/'.$result.'/routing.php')) {
 								include(dirname(__FILE__) . '/../modules/'.$result.'/routing.php');
 							}
 						}
-
 					}
-					
+
 					//Close Database
 					$db->close();
-
 				}
 			?>
 			'privacy': function(){

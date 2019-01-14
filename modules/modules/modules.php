@@ -17,7 +17,7 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
@@ -84,12 +84,7 @@
 					echo "<td>$description</td>";
 					echo "<td>$version</td>";
 
-					//Active Status
-					$sql = "SELECT active FROM apps_abre WHERE app='$uniquename'";
-					$query = $db->query($sql);
-					$returnrow = $query->fetch_assoc();
-					$active = $returnrow["active"];
-					if($active == 1){ $checkstatus = "checked"; }else{ $checkstatus = ""; }
+					$checkstatus = isAppActive($uniquename) ? "checked" : "";
 
 					echo "<td class='center-align'>";
 						echo "<div class='switch'>";

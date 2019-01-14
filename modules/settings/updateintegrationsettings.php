@@ -17,20 +17,20 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 
 	//Update system settings
 	if(admin()){
-		
+
 		//Retrieve settings and group as json
 		$softwareanswersurl = $_POST["softwareanswersurl"];
 		$softwareanswersidentifier = $_POST["softwareanswersidentifier"];
 		$softwareanswerskey = $_POST["softwareanswerskey"];
 
-		$array = [ 
+		$array = [
 					"softwareanswersurl" => "$softwareanswersurl",
 					"softwareanswersidentifier" => "$softwareanswersidentifier",
 					"softwareanswerskey" => "$softwareanswerskey"
@@ -38,9 +38,9 @@
 		$json = json_encode($array);
 
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE settings SET integrations=?";
+		$sql = "UPDATE settings SET integrations = ? WHERE siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("s", $json);
+		$stmt->bind_param("si", $json, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_google_login.php');
 
@@ -43,9 +43,9 @@
 	//make a request to save the values in the databse for the year.
 	include "../../core/abre_dbconnect.php";
 	$stmt = $db->stmt_init();
-	$sql = "UPDATE profiles SET work_calendar = ? WHERE email = ?";
+	$sql = "UPDATE profiles SET work_calendar = ? WHERE email = ? AND siteID = ?";
 	$stmt->prepare($sql);
-	$stmt->bind_param("ss", $ret, $email);
+	$stmt->bind_param("ssi", $ret, $email, $_SESSION['siteID']);
 	$stmt->execute();
 	$stmt->close();
 	$db->close();

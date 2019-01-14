@@ -119,9 +119,16 @@
 		}
 		$db->close();
 
+		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM apps LIMIT 1")){
+			$sql = "ALTER TABLE `apps` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
+		}
+		$db->close();
+
 		//Mark app as installed
 		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-		$sql = "UPDATE apps_abre SET installed = 1 WHERE app = 'apps'";
+		$sql = "UPDATE apps_abre SET installed = 1 WHERE app = 'apps' AND siteID = '".$_SESSION['siteID']."'";
 		$db->multi_query($sql);
 		$db->close();
 	}

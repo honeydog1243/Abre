@@ -18,7 +18,7 @@
 
 	//Include required files
 	require_once('abre_verification.php');
-	require_once('abre_feedback.php');
+	require_once('abre_send_email.php');
 ?>
 
 	<!--Display page content-->

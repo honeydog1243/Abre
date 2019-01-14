@@ -17,12 +17,15 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once('permissions.php');
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	require_once('permissions.php');
+	$portal_private_root = getConfigPortalPrivateRoot();
+	$portal_path_root = getConfigPortalPathRoot();
+
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
@@ -32,9 +35,9 @@
 
 		if ($cloudsetting=="true") {
 			$storage = new StorageClient([
-				'projectId' => constant("GC_PROJECT")
-			]);	
-			$bucket = $storage->bucket(constant("GC_BUCKET"));	
+				'projectId' => getenv("GC_PROJECT")
+			]);
+			$bucket = $storage->bucket(getenv("GC_BUCKET"));
 			$cloud_directory = "private_html/directory/discipline/" . $filename;
 
 			if ($bucket->object($cloud_directory)->exists()){
@@ -58,7 +61,7 @@
 		else {
 			$file = $portal_path_root."/../$portal_private_root/directory/discipline/" . $filename;
 			$fileext = pathinfo($filename, PATHINFO_EXTENSION);
-	
+
 			if(file_exists($file)){
 				header('Content-Description: File Transfer');
 				header('Content-Type: application/octet-stream');
@@ -69,7 +72,7 @@
 				header('Content-Length: ' . filesize($file));
 				readfile($file);
 				exit;
-			}	
+			}
 		}
 	}
 ?>

@@ -17,9 +17,12 @@
     */
 
  	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	$portal_root = getConfigPortalRoot();
+	$portal_path_root = getConfigPortalPathRoot();
+	$siteColor = getSiteColor();
 
 	//Check for installation
 	if(admin()){ require('installer.php'); }
@@ -33,7 +36,6 @@
 	//used for routing after verifying a student.
 	$url = $portal_root .'/#mystudents';
 
-	$schoolResults = getAllSchoolCodesAndNames();
 ?>
 
 	<!--Apps modal-->
@@ -42,121 +44,58 @@
 		<div class="modal-content">
 			<a class="modal-close black-text hide-on-med-and-up" style='position:absolute; right:20px; top:25px;'><i class='material-icons'>clear</i></a>
 			<div id='loadapps'></div>
+			<div id='viewappsloader' style='display:none;'><div class='progress'><div class='indeterminate'></div></div></div>
     </div>
 	</div>
 
-	<!--Apps Editor-->
+	<!--Admin Editor Options-->
 	<?php
 	if(admin()){
 	?>
 
-	<link rel="stylesheet" href='core/css/image-picker.0.3.0.css'>
-	<script src='core/js/image-picker.0.3.0.min.js'></script>
+		<link rel="stylesheet" href='core/css/image-picker.0.3.0.css'>
+		<script src='core/js/image-picker.0.3.0.min.js'></script>
 
-	<div id='appeditor' class='modal modal-fixed-footer modal-mobile-full'>
-		<div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
-				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">App Editor</span></div>
-				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
-			</div>
-			<div style='padding: 0px 24px 0px 24px;'>
-				<div class='row'>
-					<div class='col s12'>
-						<?php
-							include "app_editor_content.php";
-						?>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class='modal-footer'>
-			<a class='modal-action waves-effect btn-flat white-text modal-addeditapp' href='#addeditapp' data-apptitle='Add New App' style='background-color: <?php echo getSiteColor(); ?>'>Add</a>
-		</div>
-	</div>
-
-	<div id='addeditapp' class='modal modal-fixed-footer modal-mobile-full' style="width: 90%">
-		<form id='addeditappform' method="post" action='#'>
+		<!-- Apps Editor -->
+		<div id='appeditor' class='modal modal-fixed-footer modal-mobile-full'>
 			<div class='modal-content' style="padding: 0px !important;">
-				<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
-					<div class='col s11'><span class="truncate" id='editmodaltitle' style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
+				<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
+					<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">App Editor</span></div>
 					<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 				</div>
 				<div style='padding: 0px 24px 0px 24px;'>
 					<div class='row'>
-						<div class='input-field col s12'>
-							<input placeholder="Enter App Name" id="app_name" name="app_name" type="text" autocomplete="off" required>
-							<label class="active" for="app_name">Name</label>
-						</div>
-					</div>
-					<div class='row'>
-						<div class='input-field col s12'>
-							<input placeholder="Enter App Link" id="app_link" name="app_link" type="text" autocomplete="off" required>
-							<label class="active" for="app_link">Link</label>
-						</div>
-					</div>
-					<div class='row'>
-						<div class='col m3 s12'>
-							<input type="checkbox" id="app_staff" class="filled-in" value="1" />
-							<label for="app_staff">Available for staff</label>
-							<br><br>
-							<div id='appsStaffRestrictionsDiv'>
-								<label>Staff Building Restrictions</label>
-								<select name="staffRestriction[]" id="appsStaffRestrictions" multiple>
-									<option value="No Restrictions">All Buildings</option>
-									<?php
-									foreach($schoolResults as $code=>$school){
-										echo "<option value='$code'>".ucwords(strtolower($school))."</option>";
-									}
-									?>
-								</select>
-							</div>
-						</div>
-						<div class='col m3 s12'>
-							<input type="checkbox" id="app_students" class="filled-in" value="1" />
-							<label for="app_students">Available for students</label>
-							<br><br>
-							<div id='appsStudentRestrictionsDiv'>
-								<label>Student Building Restrictions</label>
-								<select name="studentRestriction[]" id="appsStudentRestrictions" multiple>
-									<option value="No Restrictions">All Buildings</option>
-									<?php
-									$lastSchoolCode = "";
-									foreach($schoolResults as $code=>$school){
-										echo "<option value='$code'>".ucwords(strtolower($school))."</option>";
-									}
-									?>
-								</select>
-							</div>
-						</div>
-						<div class='col m3 s12'>
-							<input type="checkbox" id="app_parents" class="filled-in" value="1" />
-							<label for="app_parents">Available for parents</label>
-						</div>
-					</div>
-					<div class='row'>
 						<div class='col s12'>
-							<label>Select an Icon</label>
-							<select id="app_icon" name="app_icon" class="image-picker browser-default" required>
-							<?php
-								$icons = scandir("$portal_path_root/core/images/apps/");
-								foreach($icons as $iconimage){
-									if(strpos($iconimage, ".png") !== false ){
-										echo "<option data-img-src='/core/images/apps/$iconimage' data-img-class='appiconsholderpicker' value='$iconimage'></option>";
-									}
-								}
-							?>
-							</select>
+							<div id='loadappeditor'></div>
+							<div id='viewloadappeditorloader' style='display:none;'><div class='progress'><div class='indeterminate'></div></div></div>
 						</div>
-						<input id="app_id" name="app_id" type="hidden">
 					</div>
 				</div>
 			</div>
 			<div class='modal-footer'>
-				<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveupdateapp' style='background-color: <?php echo getSiteColor(); ?>'>Save</button>
-				<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo getSiteColor(); ?>; margin-right:5px;'>Cancel</a>
+				<a class='modal-action waves-effect btn-flat white-text modal-addeditapp' href='#addeditapp' data-apptitle='Add New App' style='background-color: <?php echo $siteColor; ?>'>Add</a>
 			</div>
-		</form>
-	</div>
+		</div>
+
+		<!-- App Editor/Creator -->
+		<div id='addeditapp' class='modal modal-fixed-footer modal-mobile-full' style="width: 90%">
+			<form id='addeditappform' method="post" action='#'>
+				<div class='modal-content' style="padding: 0px !important;">
+					<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
+						<div class='col s11'><span class="truncate" id='editmodaltitle' style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
+						<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
+					</div>
+					<div style='padding: 0px 24px 0px 24px;'>
+						<div id='loadaddeditapp'></div>
+						<div id='viewloadaddeditapploader' style='display:none;'><div class='progress'><div class='indeterminate'></div></div></div>
+					</div>
+				</div>
+				<div class='modal-footer'>
+					<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveupdateapp' style='background-color: <?php echo $siteColor; ?>'>Save</button>
+					<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo $siteColor; ?>; margin-right:5px;'>Cancel</a>
+				</div>
+			</form>
+		</div>
 
 	<?php
 	}
@@ -166,21 +105,26 @@
 		<div id="verifystudent" class="modal modal-fixed-footer modal-mobile-full">
 			<form class="col s12" id="form-verifystudent" method="post" action="<?php echo basename(__DIR__); ?>/../../core/abre_verifystudent_process.php">
 				<div class="modal-content" style="padding: 0px !important;">
-					<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
-						<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Enter Student Access Code</span></div>
+					<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
+						<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Student Access</span></div>
 						<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 					</div>
 					<div style='padding: 0px 24px 0px 24px;'>
 						<div class="row">
 							<div class="input-field col s6">
 								<input id="studenttoken" name="studenttoken" type="text" maxlength="20" placeholder="Enter your student token" autocomplete="off" required>
+								<label for="studenttoken" class="active">Enter Student Access Code</label>
 							</div>
-							<div id="errormessage" style="color:#F44336"></div>
+						</div>
+						<div class="row">
+							<div class="col s6">
+								<div class='s12 l12' id="errormessage" style="color:#F44336"></div>
+							</div>
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="submit" class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo getSiteColor();?>'>Verify</button>
+					<button type="submit" class="modal-action waves-effect btn-flat white-text" style='background-color: <?php echo $siteColor; ?>'>Verify</button>
 				</div>
 			</form>
 		</div>
@@ -189,22 +133,6 @@
 <script>
 
 	$(function(){
-
-		$("#app_staff").change(function(){
-			if($(this).is(':checked')){
-				$("#appsStaffRestrictionsDiv").show();
-			}else{
-				$("#appsStaffRestrictionsDiv").hide();
-			}
-		});
-
-		$("#app_students").change(function(){
-			if($(this).is(':checked')){
-				$("#appsStudentRestrictionsDiv").show();
-			}else{
-				$("#appsStudentRestrictionsDiv").hide();
-			}
-		});
 
 		$('select').material_select();
 
@@ -263,15 +191,13 @@
 			});
 		});
 
-		//Load Apps into Modal
-		$('#loadapps').load('modules/apps/apps.php');
-
 		//Apps Modal
     $('.modal-viewapps').leanModal({
 			in_duration: 0,
 			out_duration: 0,
 			opacity: 0,
 	    ready: function() {
+				$("#viewappsloader").show();
 				$("#viewapps_arrow").show();
 		    $("#viewapps").scrollTop(0);
 		    $('#viewprofile').closeModal({
@@ -279,6 +205,12 @@
 					out_duration: 0,
 			   });
 		    $("#viewprofile_arrow").hide();
+
+				//Load Apps
+				$('#loadapps').load('modules/apps/apps.php', function(){
+					$("#viewappsloader").hide();
+				});
+
 		  },
 	    complete: function() { $("#viewapps_arrow").hide(); }
 		});
@@ -295,21 +227,31 @@
 				in_duration: 0,
 				out_duration: 0,
 				ready: function(){
-					$('.modal-content').scrollTop(0);
+
 					$("#editmodaltitle").text('Add New App');
-					$("#app_name").val('');
-					$("#app_link").val('');
-					$("#app_id").val('');
-					$('#app_staff').prop('checked', false);
-					$('#app_students').prop('checked', false);
-					$('#app_parents').prop('checked', false);
-					$('[name=app_icon]').val('');
-					$("select").imagepicker();
-					$("#appsStudentRestrictions").val('No Restrictions');
-					$("#appsStaffRestrictions").val('No Restrictions');
-					$("#appsStudentRestrictionsDiv").hide();
-					$("#appsStaffRestrictionsDiv").hide();
-					$('select').material_select();
+					$("#viewloadaddeditapploader").show();
+					$("#loadaddeditapp").hide();
+					$('#loadaddeditapp').load('modules/apps/app_addapp_content.php', function(){
+
+						$("#viewloadaddeditapploader").hide();
+						$("#loadaddeditapp").show();
+
+						$('.modal-content').scrollTop(0);
+						$("#app_name").val('');
+						$("#app_link").val('');
+						$("#app_id").val('');
+						$('#app_staff').prop('checked', false);
+						$('#app_students').prop('checked', false);
+						$('#app_parents').prop('checked', false);
+						$('[name=app_icon]').val('');
+						$("select").imagepicker();
+						$("#appsStudentRestrictions").val('No Restrictions');
+						$("#appsStaffRestrictions").val('No Restrictions');
+						$("#appsStudentRestrictionsDiv").hide();
+						$("#appsStaffRestrictionsDiv").hide();
+
+					});
+
 				}
 			});
 

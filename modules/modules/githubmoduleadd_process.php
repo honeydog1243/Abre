@@ -17,11 +17,12 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require(dirname(__FILE__) . '/../../core/abre_version.php');
+	$portal_path_root = getConfigPortalPathRoot();
 
 	//Verify superadmin
 	if(superadmin()){
@@ -54,25 +55,25 @@
     unlink("$portal_path_root/modules/$project.zip");
 
 		$app = str_replace("/", "", $project);
-		$sql = "SELECT COUNT(*) FROM apps_abre WHERE app = '$app'";
+		$sql = "SELECT COUNT(*) FROM apps_abre WHERE app = '$app' AND siteID = '".$_SESSION['siteID']."'";
 		$query = $db->query($sql);
 		$result = $query->fetch_assoc();
 		$count = $result["COUNT(*)"];
-		
+
 		$active = 1;
 		$installed = 0;
 		if($count == 0){
 			$stmt = $db->stmt_init();
-			$insertSql = "INSERT INTO apps_abre (app, active, installed) VALUES (?, ?, ?)";
+			$insertSql = "INSERT INTO apps_abre (app, active, installed, siteID) VALUES (?, ?, ?, ?)";
 			$stmt->prepare($insertSql);
-			$stmt->bind_param("sii", $app, $active, $installed);
+			$stmt->bind_param("siii", $app, $active, $installed, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 		}else{
 			$stmt = $db->stmt_init();
-			$insertSql = "UPDATE apps_abre SET active = ?, installed = ? WHERE app = ?";
+			$insertSql = "UPDATE apps_abre SET active = ?, installed = ? WHERE app = ? AND siteID = ?";
 			$stmt->prepare($insertSql);
-			$stmt->bind_param("iis", $active, $installed, $app);
+			$stmt->bind_param("iisi", $active, $installed, $app, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 		}

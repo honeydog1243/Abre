@@ -18,7 +18,7 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	if(admin()){
@@ -26,9 +26,9 @@
 
 		//Delete the App
 		$stmt = $db->stmt_init();
-		$sql = "DELETE FROM apps WHERE id = ?";
+		$sql = "DELETE FROM apps WHERE id = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("i", $appid);
+		$stmt->bind_param("ii", $appid, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->store_result();
 		$stmt->close();

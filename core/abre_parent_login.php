@@ -17,9 +17,10 @@
     */
 
 	//Include required files
-	require_once(dirname(__FILE__) . '/../configuration.php');
 	require_once('abre_functions.php');
 	require(dirname(__FILE__). '/facebook/src/Facebook/autoload.php');
+	$portal_root = getConfigPortalRoot();
+	$siteColor = getSiteColor();
 
 	if(getSiteFacebookClientId() !== '' && getSiteFacebookClientSecret() !== '' ){
 		$fb = new Facebook\Facebook([
@@ -30,7 +31,7 @@
 
 	    $helper = $fb->getRedirectLoginHelper();
 	    $permissions = ['public_profile', 'email']; // Optional permissions
-	    $loginUrl = $helper->getLoginUrl($portal_root.'/core/abre_facebook_login_helper.php/', $permissions);
+	    $loginUrl = $helper->getLoginUrl($portal_root.'/core/abre_facebook_login_helper.php', $permissions);
 	}
 
 	if(getSiteGoogleClientId() !== '' && getSiteGoogleClientSecret() !== ''){
@@ -42,10 +43,10 @@
 	echo "<main>";
 
 		//Overlay Div
-		echo "<div id='loadingcover' style='background-color:".getSiteColor()."; position:fixed; width:100%; height:100%; z-index:2'></div>";
+		echo "<div id='loadingcover' style='background-color:".$siteColor."; position:fixed; width:100%; height:100%; z-index:2'></div>";
 
 		//Login Holder
-		echo "<div class='mdl-layout mdl-js-layout login-card' style='background-color:".getSiteColor()."; background-image: url(/core/images/abre/abre_pattern.png); '>";
+		echo "<div class='mdl-layout mdl-js-layout login-card' style='background-color:".$siteColor."; background-image: url(/core/images/abre/abre_pattern.png); '>";
 
 			echo "<div class='login_wrapper' style='z-index:1;'>";
 				echo "<div class='login-card-square mdl-card'>";

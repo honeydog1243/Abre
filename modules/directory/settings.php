@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once('permissions.php');
 
@@ -25,7 +25,7 @@
 	if($pageaccess == 1){
 
 		$dropdownArray = array();
-		$sql = "SELECT dropdownID, options FROM directory_settings";
+		$sql = "SELECT dropdownID, options FROM directory_settings WHERE siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$key = $row['dropdownID'];

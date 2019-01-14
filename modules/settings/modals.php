@@ -21,6 +21,8 @@
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
+	$siteColor = getSiteColor();
+
 ?>
 
 <!--Stream Editor-->
@@ -30,7 +32,7 @@
 	<div id='googleAuthModal' class='modal modal-fixed-footer modal-mobile-full' style="width:90%">
 		<form id='googleAuthOptionsForm' method="post" action='#'>
 		<div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Google Authentication Options</span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -62,8 +64,8 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='savegoogleauth' style='background-color: <?php echo getSiteColor(); ?>; font-weight:500;'>Save</button>
-			<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo getSiteColor(); ?>; margin-right:5px;'>Cancel</a>
+			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='savegoogleauth' style='background-color: <?php echo $siteColor; ?>; font-weight:500;'>Save</button>
+			<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo $siteColor; ?>; margin-right:5px;'>Cancel</a>
 		</div>
 		</form>
 	</div>
@@ -71,7 +73,7 @@
   <div id='microsoftAuthModal' class='modal modal-fixed-footer modal-mobile-full' style="width:90%">
     <form id='microsoftAuthOptionsForm' method="post" action='#'>
     <div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Microsoft Authentication Options</span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -103,8 +105,8 @@
 	    </div>
 		</div>
     <div class='modal-footer'>
-      <button type="submit" class='modal-action waves-effect btn-flat white-text' id='savemicrosoftauth' style='background-color: <?php echo getSiteColor(); ?>; font-weight:500;'>Save</button>
-      <a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo getSiteColor(); ?>; margin-right:5px;'>Cancel</a>
+      <button type="submit" class='modal-action waves-effect btn-flat white-text' id='savemicrosoftauth' style='background-color: <?php echo $siteColor; ?>; font-weight:500;'>Save</button>
+      <a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo $siteColor; ?>; margin-right:5px;'>Cancel</a>
     </div>
     </form>
   </div>
@@ -112,7 +114,7 @@
   <div id='facebookAuthModal' class='modal modal-fixed-footer modal-mobile-full' style="width:90%">
     <form id='facebookAuthOptionsForm' method="post" action='#'>
     <div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Facebook Authentication Options</span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -136,8 +138,8 @@
 			</div>
     </div>
     <div class='modal-footer'>
-      <button type="submit" class='modal-action waves-effect btn-flat white-text' id='savefacebookauth' style='background-color: <?php echo getSiteColor(); ?>; font-weight:500;'>Save</button>
-      <a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo getSiteColor(); ?>; margin-right:5px;'>Cancel</a>
+      <button type="submit" class='modal-action waves-effect btn-flat white-text' id='savefacebookauth' style='background-color: <?php echo $siteColor; ?>; font-weight:500;'>Save</button>
+      <a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo $siteColor; ?>; margin-right:5px;'>Cancel</a>
     </div>
     </form>
   </div>

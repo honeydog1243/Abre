@@ -17,11 +17,12 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require(dirname(__FILE__) . '/../../core/abre_version.php');
+	$portal_path_root = getConfigPortalPathRoot();
 
 	//Verify admin
 	if(superadmin()){
@@ -144,12 +145,12 @@
 		//Create content folder if one doesn't exist
 		if(!file_exists("$portal_path_root/content/")){ mkdir("$portal_path_root/content/"); }
 
-		$sql = "UPDATE apps_abre SET installed = 0";
+		$sql = "UPDATE apps_abre SET installed = 0 WHERE siteID = '".$_SESSION['siteID']."'";
 		$db->multi_query($sql);
 
-		$sql = "UPDATE settings SET update_required = 1";
+		$sql = "UPDATE settings SET update_required = 1 WHERE siteID = '".$_SESSION['siteID']."'";
 		$db->multi_query($sql);
-		
+
 		$db->close();
 
 		//Delete the update directory

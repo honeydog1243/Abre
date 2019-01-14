@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require('permissions.php');
@@ -26,21 +26,21 @@
 	//Update Directory Settings
 	if($pageaccess == 1){
 		foreach($_POST as $key => $value){
-			$query = $db->query("SELECT COUNT(*) FROM `directory_settings` WHERE dropdownID = '$key'");
+			$query = $db->query("SELECT COUNT(*) FROM `directory_settings` WHERE dropdownID = '$key' AND siteID = '".$_SESSION['siteID']."'");
 			$resultrow = $query->fetch_assoc();
 			$count = $resultrow["COUNT(*)"];
 
 			if($count > 0){
 				$stmt = $db->stmt_init();
-				$sql = "UPDATE `directory_settings` SET `options` = ? WHERE `dropdownID` = ?";
+				$sql = "UPDATE `directory_settings` SET `options` = ? WHERE `dropdownID` = ? AND siteID = ?";
 				$stmt->prepare($sql);
-				$stmt->bind_param("ss", $value, $key);
+				$stmt->bind_param("ssi", $value, $key, $_SESSION['siteID']);
 				$stmt->execute();
 			}else{
 				$stmt = $db->stmt_init();
-				$sql = "INSERT INTO `directory_settings` (`dropdownID`,`options`) VALUES (?, ?);";
+				$sql = "INSERT INTO `directory_settings` (`dropdownID`,`options`, siteID) VALUES (?, ?, ?);";
 				$stmt->prepare($sql);
-				$stmt->bind_param("ss", $key, $value);
+				$stmt->bind_param("ssi", $key, $value, $_SESSION['siteID']);
 				$stmt->execute();
 			}
 		}

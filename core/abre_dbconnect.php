@@ -16,18 +16,26 @@
     * version 3 along with this program.  If not, see https://www.gnu.org/licenses/agpl-3.0.en.html.
     */
 
-	//Include required files
-	require_once(dirname(__FILE__) . '/../configuration.php');
-
 	//Connect to the database
-	$db_host = constant("DB_HOST");
-	$db_user = constant("DB_USER");
-	$db_password = constant("DB_PASSWORD");
-	$db_name = constant("DB_NAME");
-	$db_socket = constant("DB_SOCKET");
+	if(getenv("USE_GOOGLE_CLOUD") == "true"){
+		$db_host = getenv("DB_HOST");
+		$db_user = getenv("DB_USER");
+		$db_password = getenv("DB_PASSWORD");
+		$db_name = getenv("DB_NAME");
+		$db_socket = getenv("DB_SOCKET");
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+		$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	}else{
+		require_once(dirname(__FILE__) . '/../configuration.php');
+		$db_host = constant("DB_HOST");
+		$db_user = constant("DB_USER");
+		$db_password = constant("DB_PASSWORD");
+		$db_name = constant("DB_NAME");
+		$db_socket = constant("DB_SOCKET");
+
+		$cloudsetting = constant("USE_GOOGLE_CLOUD");
+	}
+	if ($cloudsetting=="true")
 		$db = new mysqli($db_host, $db_user, $db_password, $db_name, null, $db_socket);
 	else
 		$db = new mysqli($db_host, $db_user, $db_password, $db_name);

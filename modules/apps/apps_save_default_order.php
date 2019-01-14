@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
@@ -28,10 +28,10 @@
 		$i = 0;
 		include "../../core/abre_dbconnect.php";
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE apps SET sort = ? WHERE id = ?";
+		$sql = "UPDATE apps SET sort = ? WHERE id = ? AND siteID = ?";
 		foreach($list as $value){
 			$stmt->prepare($sql);
-			$stmt->bind_param("ii", $i, $value);
+			$stmt->bind_param("iii", $i, $value, $_SESSION['siteID']);
 			$stmt->execute();
 			$i++;
 		}

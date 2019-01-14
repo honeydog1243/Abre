@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
@@ -31,24 +31,24 @@
 
 		//Check to see if profile record exists
 		include "../../core/abre_dbconnect.php";
-		$query = "SELECT COUNT(*) FROM profiles WHERE email = '".$_SESSION['useremail']."'";
+		$query = "SELECT COUNT(*) FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 		$results = $db->query($query);
 		$resultrow = $results->fetch_assoc();
 		$records = $resultrow["COUNT(*)"];
 
 		if($records==0){
 			$stmt = $db->stmt_init();
-			$sql = "INSERT INTO profiles (email, startup) VALUES (?, '0')";
+			$sql = "INSERT INTO profiles (email, startup, siteID) VALUES (?, '0', ?)";
 			$stmt->prepare($sql);
-			$stmt->bind_param("s", $_SESSION['useremail']);
+			$stmt->bind_param("si", $_SESSION['useremail'], $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 		}
 
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE profiles SET apps_order = ? WHERE email = ?";
+		$sql = "UPDATE profiles SET apps_order = ? WHERE email = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("ss", $a, $_SESSION['useremail']);
+		$stmt->bind_param("ssi", $a, $_SESSION['useremail'], $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

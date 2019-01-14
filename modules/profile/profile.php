@@ -17,17 +17,18 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_google_login.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	$portal_root = getConfigPortalRoot();
+	$siteColor = getSiteColor();
 
 	$schoolCodeArray = getRestrictions();
-	$codeArraySize = sizeof($schoolCodeArray);
 
 	//Get profile information
-	$sql = "SELECT startup, streams FROM profiles WHERE email = '".$_SESSION['useremail']."'";
+	$sql = "SELECT startup, streams FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 	$dbreturn = databasequery($sql);
 	foreach($dbreturn as $row){
 		$setting_startup = htmlspecialchars($row['startup'], ENT_QUOTES);
@@ -35,7 +36,7 @@
 	}
 
 	//Get Contracted Days
-	$sql = "SELECT contractdays, title FROM directory WHERE email = '".$_SESSION['useremail']."'";
+	$sql = "SELECT contractdays, title FROM directory WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 	$dbreturn = databasequery($sql);
 	foreach($dbreturn as $row){
 		$contractdays = htmlspecialchars($row['contractdays'], ENT_QUOTES);
@@ -66,20 +67,20 @@
 		echo "<div id='streamcontainer' class='page_container page_container_limit mdl-shadow--4dp'>";
 		echo "<div class='page'>";
 			echo "<div class='row'>";
-				echo "<div class='col s12'><h3>Streams</h3></div>";
-				echo "<div class='col s12'><p>Decide which information is relevant to you. Please choose from the topics below to customize your stream.</p></div>";
+				echo "<div class='col s12'><h3>Announcements & News</h3></div>";
+				echo "<div class='col s12'><p>Personalize your announcements and news by choosing from the options below.</p></div>";
 				echo "<div class='col s12'><div id='streamerror'></div></div>";
 			echo "</div>";
 			echo "<div class='row'>";
 
-				$sql = "SELECT streams FROM profiles WHERE email = '".$_SESSION['useremail']."'";
+				$sql = "SELECT streams FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 				$result = $db->query($sql);
 				$resultrow = $result->fetch_assoc();
 				$streamValues = explode(',', $resultrow["streams"]);
 				$streamValues = array_unique($streamValues, SORT_NUMERIC);
 
 				$dcount = 0;
-				$sql = "SELECT title, id, `group`, staff_building_restrictions, student_building_restrictions FROM streams WHERE `required` != 1 ORDER BY type, title";
+				$sql = "SELECT title, id, `group`, staff_building_restrictions, student_building_restrictions FROM streams WHERE `required` != 1 AND siteID = '".$_SESSION['siteID']."' ORDER BY type, title";
 				$dbreturn = databasequery($sql);
 				foreach($dbreturn as $row){
 					if(strpos($row["group"], $_SESSION["usertype"]) !== false){
@@ -113,7 +114,7 @@
 							}
 							$dcount++;
 						}else{
-							if($codeArraySize >= 1){
+							if(!empty($schoolCodeArray)){
 								foreach($schoolCodeArray as $code){
 									if(in_array($code, $restrictionsArray)){
 										foreach($streamValues as $value){
@@ -143,7 +144,7 @@
 				echo "</div>";
 			echo "</div>";
 			if((admin() || isStreamHeadlineAdministrator()) && $_SESSION['usertype'] == 'staff'){
-				echo "<div class='row'><div class='col s12'><a class='modal-editstreams waves-effect btn-flat white-text' href='#streameditor' style='background-color: "; echo getSiteColor(); echo "'>Manage</a></div></div>";
+				echo "<div class='row'><div class='col s12'><a class='modal-editstreams waves-effect btn-flat white-text' href='#streameditor' style='background-color: "; echo $siteColor; echo "'>Manage</a></div></div>";
 			}
 		echo "</div>";
 		echo "</div>";
@@ -153,11 +154,11 @@
 			echo "<div class='page'>";
 				echo "<div class='row'>";
 					echo "<div class='col s12'><h3>Headlines</h3></div>";
-					echo "<div class='col s12'><p>Create information to show users upon login.</p></div>";
+					echo "<div class='col s12'><p>Customize action-required information to show users upon login.</p></div>";
 				echo "</div>";
 				echo "<div class='row'>";
 				echo "</div>";
-				echo "<div class='row'><div class='col s12'><a class='modal-editheadlines waves-effect btn-flat white-text' href='#headlineseditor' style='background-color: "; echo getSiteColor(); echo "'>Manage</a></div></div>";
+				echo "<div class='row'><div class='col s12'><a class='modal-editheadlines waves-effect btn-flat white-text' href='#headlineseditor' style='background-color: "; echo $siteColor; echo "'>Manage</a></div></div>";
 			echo "</div>";
 			echo "</div>";
 		}
@@ -180,7 +181,7 @@
 						}else{
 							echo "<p>You can use the calendar below to choose your work schedule.</p>";
 						}
-						echo "<a href='#viewschedule' class='modal-viewschedule' style='line-height:40px; color:".getSiteColor()."'>SET CALENDAR</a><br><a href='#' class='printbutton' style='line-height:40px; color:".getSiteColor()."'>PRINT CALENDAR</a>";
+						echo "<a href='#viewschedule' class='modal-viewschedule' style='line-height:40px; color:".$siteColor."'>SET CALENDAR</a><br><a href='#' class='printbutton' style='line-height:40px; color:".$siteColor."'>PRINT CALENDAR</a>";
 
 					echo "</div>";
 				echo "</div>";
@@ -228,7 +229,7 @@
 				//Show the notification
 				.done(function(response) {
 					$('#streamerror').show();
-					$('#streamerror').html("<h6 style='color: <?php echo getSiteColor(); ?>'>Great picks! Follow more topics or hit Done to see your Stream. <a href='#' class='waves-effect waves-light btn mdl-color-text--white' style='background-color: <?php echo getSiteColor(); ?>'>Done</a></h6>");
+					$('#streamerror').html("<h6 style='color: <?php echo $siteColor; ?>'>Great picks! Follow more topics or hit Done to see your Stream. <a href='#' class='waves-effect waves-light btn mdl-color-text--white' style='background-color: <?php echo $siteColor; ?>'>Done</a></h6>");
 					var notification = document.querySelector('.mdl-js-snackbar');
 					var data = { message: 'Your changes have been saved.' };
 					notification.MaterialSnackbar.showSnackbar(data);
@@ -240,7 +241,7 @@
 		$(".printbutton").click(function(e){
 			e.preventDefault();
 			var win = window.open('','printwindow');
-			win.document.write('<html><head><title>Print Work Calendar</title><link rel="stylesheet" type="text/css" href="https://hcsdoh.org/modules/profile/css/calendar.css"><link href="https://fonts.googleapis.com/css?family=Roboto:400,300,500,700,900,100" rel="stylesheet" type="text/css"></head><body>');
+			win.document.write('<html><head><title>Print Work Calendar</title><link rel="stylesheet" type="text/css" href="modules/profile/css/calendar.css"><link href="https://fonts.googleapis.com/css?family=Roboto:400,300,500,700,900,100" rel="stylesheet" type="text/css"></head><body>');
 			win.document.write($("#workcalendardisplay").html());
 			win.document.write('</body></html>');
 		});

@@ -16,14 +16,117 @@
     * version 3 along with this program.  If not, see https://www.gnu.org/licenses/agpl-3.0.en.html.
     */
 
-	//Include required files
-	require_once(dirname(__FILE__) . '/../configuration.php');
+	require_once(dirname(__FILE__) . '/abre_session.php');
+	if(session_id() == '') {
+		session_set_save_handler("sess_open", "sess_close", "sess_read", "sess_write", "sess_destroy", "sess_gc");
+		session_start();
+	}
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	//$portal_root = getConfigPortalRoot();
+	$portal_private_root = getConfigPortalPrivateRoot();
+
+	//Include required files
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
+	// This function caches the db call using a static variable
+	function getConfigSettings($siteID, $value) {
+		static $configData = null;
+		if(is_null($configData)) {
+			$configData = loadConfigData($siteID);
+		}
+		return $configData->$value;
+	}
+
+	function loadConfigData($siteID) {
+		include "abre_dbconnect.php";
+
+		$sql = "SELECT config_settings FROM abre_tenant_map WHERE siteID = $siteID";
+		$query = $db->query($sql);
+		if($query) {
+			$row = $query->fetch_assoc();
+			$options = $row['config_settings'];
+		}
+		$db->close();
+		return isset($options) && $options != "" ? json_decode($options) : "";
+	}
+
+	function getConfigPortalRoot() {
+		return getConfigSettings($_SESSION['siteID'], "portal_root");
+	}
+
+	function getConfigPortalPrivateRoot() {
+		$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+		if ($cloudsetting=="true") return null;
+		return getConfigSettings($_SESSION['siteID'], "portal_private_root");
+	}
+
+	function getConfigSiteGafeDomain() {
+		return getConfigSettings($_SESSION['siteID'], "SITE_GAFE_DOMAIN");
+	}
+
+	function getConfigDBKey() {
+		return getConfigSettings($_SESSION['siteID'], "DB_KEY");
+	}
+
+	function getConfigGCProject() {
+		return getConfigSettings($_SESSION['siteID'], "GC_PROJECT");
+	}
+
+	function getConfigGCBucket() {
+		return getConfigSettings($_SESSION['siteID'], "GC_BUCKET");
+	}
+
+	function getConfigGoogleClientID() {
+		return getConfigSettings($_SESSION['siteID'], "GOOGLE_CLIENT_ID");
+	}
+
+	function getConfigGoogleClientSecret() {
+		return getConfigSettings($_SESSION['siteID'], "GOOGLE_CLIENT_SECRET");
+	}
+
+	function getConfigGoogleApiKey() {
+		return getConfigSettings($_SESSION['siteID'], "GOOGLE_API_KEY");
+	}
+
+	function getConfigGoogleHD() {
+		return getConfigSettings($_SESSION['siteID'], "GOOGLE_HD");
+	}
+
+	function getConfigPortalCookieKey() {
+		return getConfigSettings($_SESSION['siteID'], "PORTAL_COOKIE_KEY");
+	}
+
+	function getConfigPortalCookieName() {
+		return getConfigSettings($_SESSION['siteID'], "PORTAL_COOKIE_NAME");
+	}
+
+	function getConfigPortalPathRoot() {
+		return $_SERVER['DOCUMENT_ROOT'];
+	}
+
+	function getConfigGoogleRedirect() {
+		return getConfigSettings($_SESSION['siteID'], "GOOGLE_REDIRECT");
+	}
+
+	function getConfigGoogleScopes() {
+		$value = getConfigSettings($_SESSION['siteID'], "GOOGLE_SCOPES");
+		if($value == "") {
+			return $value;
+		} else {
+			return unserialize($value);
+		}
+	}
+
+	function getConfigStreamCache() {
+		return getConfigSettings($_SESSION['siteID'], "STREAM_CACHE");
+	}
+
+	function getConfigSiteMode() {
+		return getConfigSettings($_SESSION['siteID'], "SITE_MODE");
+	}
 
 	function useApi() {
 
@@ -36,24 +139,36 @@
 	}
 
 	//Encryption function
-	function encrypt($string, $encryption_key){
-		$encryption_key = constant("DB_KEY");
-		$string = rtrim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $encryption_key, $string, MCRYPT_MODE_ECB)));
-
-		return $string;
+	function encrypt($string, $encryption_key, $siteKey = NULL){
+		if(is_null($siteKey)){
+			if(getenv("USE_GOOGLE_CLOUD") == "true"){
+				$encryption_key = getConfigDBKey();
+			}else{
+				$encryption_key = constant("DB_KEY");
+			}
+		}else{
+			$encryption_key = $siteKey;
+		}
+		return rtrim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $encryption_key, $string, MCRYPT_MODE_ECB)));
 	}
 
 	//Decryption function
-	function decrypt($string, $encryption_key){
-		$encryption_key = constant("DB_KEY");
-		$string = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $encryption_key, base64_decode($string), MCRYPT_MODE_ECB));
-
-		return $string;
+	function decrypt($string, $encryption_key, $siteKey = NULL){
+		if(is_null($siteKey)){
+			if(getenv("USE_GOOGLE_CLOUD") == "true"){
+				$encryption_key = getConfigDBKey();
+			}else{
+				$encryption_key = constant("DB_KEY");
+			}
+		}else{
+			$encryption_key = $siteKey;
+		}
+		return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $encryption_key, base64_decode($string), MCRYPT_MODE_ECB));
 	}
 
 	//Find user ID in directory module given an email
 	function finduserid($email){
-		$sql = "SELECT id FROM directory WHERE email = '$email'";
+		$sql = "SELECT id FROM directory WHERE email = '$email' AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$id = $row["id"];
@@ -62,45 +177,45 @@
 	}
 
 	//Determine if users is superadmin or district admin
-	function admin(){
-		include "abre_dbconnect.php";
-		$sql = "SELECT COUNT(*) FROM users WHERE email = '".$_SESSION['useremail']."' AND superadmin = 1";
-		$result = $db->query($sql);
-		$resultrow = $result->fetch_assoc();
-		$count = $resultrow["COUNT(*)"];
-		if($count > 0){
-			return true;
-		}
-
-		$sql = "SELECT COUNT(*) FROM users WHERE email = '".$_SESSION['useremail']."' AND admin = 1";
-		$result = $db->query($sql);
-		$resultrow = $result->fetch_assoc();
-		$count = $resultrow["COUNT(*)"];
-		if($count > 0){
-			return true;
-		}
-
-		return false;
+	function admin() {
+		return getCurrentUser()->superadmin || getCurrentUser()->admin;
 	}
 
 	//Determine if a user is a superadmin
-	function superadmin(){
-		include "abre_dbconnect.php";
-		$sql = "SELECT COUNT(*) FROM users WHERE email = '".$_SESSION['useremail']."' AND superadmin = 1";
-		$result = $db->query($sql);
-		$resultrow = $result->fetch_assoc();
-		$count = $resultrow["COUNT(*)"];
-		if($count > 0){
-			return true;
-		}
-
-		return false;
+	function superadmin() {
+		return getCurrentUser()->superadmin;
 	}
+
+	// This function caches the db call using a static variable
+	function getCurrentUser() {
+		static $currentUser = null;
+		if(is_null($currentUser)) {
+			$currentUser = lookupCurrentUser();
+		}
+		return $currentUser;
+	}
+
+	function lookupCurrentUser() {
+		include "abre_dbconnect.php";
+		$sql = "SELECT admin, superadmin FROM users
+						WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
+		$result = $db->query($sql);
+		$row = $result->fetch_assoc();
+
+		$user = new stdClass;
+		$user->admin = $row["admin"];
+		$user->superadmin = $row["superadmin"];
+
+		$db->close();
+		return $user;
+	}
+
+
 
 	//Find user ID given an email
 	function finduseridcore($email){
 		include "abre_dbconnect.php";
-		$sql = "SELECT id FROM users WHERE email = '".$_SESSION['useremail']."'";
+		$sql = "SELECT id FROM users WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$id = $row["id"];
@@ -110,9 +225,9 @@
 
 	//determine if user is stream and headline administrator
 	function isStreamHeadlineAdministrator(){
-		$email = $_SESSION['useremail'];
+		$email = $_SESSION['escapedemail'];
 		include "abre_dbconnect.php";
-		$sql = "SELECT role FROM directory WHERE email = '$email'";
+		$sql = "SELECT role FROM directory WHERE email = '$email' AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$role = decrypt($row["role"], "");
@@ -123,30 +238,13 @@
 		return false;
 	}
 
-	//Determine the grades that students do not have email access
-	function studentaccess(){
-		$email = $_SESSION['useremail'];
-		if(preg_replace('/[^0-9]+/', '', $email)){
-			$gradyear = intval(preg_replace('/[^0-9]+/', '', $email), 10);
-			$currentyear = date("y");
-			$difference = $gradyear - $currentyear;
-			if($difference < 6){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return true;
-		}
-	}
-
 	//returns an array containing all school codes and school names for a given
 	//district
 	function getAllSchoolCodesAndNames(){
 		require('abre_dbconnect.php');
 		$schoolResults = array();
 		if($db->query("SELECT * FROM Abre_Students LIMIT 1")){
-			$sql = "SELECT SchoolCode, SchoolName FROM Abre_Students ORDER BY SchoolCode";
+			$sql = "SELECT SchoolCode, SchoolName FROM Abre_Students WHERE siteID = '".$_SESSION['siteID']."' ORDER BY SchoolCode";
 			$query = $db->query($sql);
 			while($results = $query->fetch_assoc()){
 				if($results['SchoolCode'] == ''){
@@ -165,7 +263,7 @@
 		require('abre_dbconnect.php');
 		$schoolCodes = array();
 		if($db->query("SELECT * FROM Abre_Students LIMIT 1")){
-			$sql = "SELECT SchoolCode FROM Abre_Students ORDER BY SchoolCode";
+			$sql = "SELECT SchoolCode FROM Abre_Students WHERE siteID = '".$_SESSION['siteID']."' ORDER BY SchoolCode";
 			$query = $db->query($sql);
 			while($results = $query->fetch_assoc()){
 					array_push($schoolCodes, $results['SchoolCode']);
@@ -184,54 +282,53 @@
 	users_parents table. We wanted to make parents who are registered as a contact
 	for the school to be able to "fastpass" registering a student token */
 	function isVerified(){
-		include "abre_dbconnect.php";
-
     if($_SESSION['usertype'] == 'parent'){
-			$sql = "SELECT id FROM users_parent WHERE email LIKE '".$_SESSION['useremail']."';";
+			include "abre_dbconnect.php";
+			$sql = "SELECT id FROM users_parent WHERE email LIKE '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."';";
       $result = $db->query($sql);
       $row = $result->fetch_assoc();
       $parent_id = $row["id"];
 
-      if($db->query("SELECT * FROM student_tokens LIMIT 1") && $db->query("SELECT * FROM users_parent LIMIT 1")
-          && $db->query("SELECT * FROM Abre_Students LIMIT 1") && $db->query("SELECT * FROM Abre_ParentContacts LIMIT 1")){
-					//see if email matches any records
-	        $sql = "SELECT StudentID FROM Abre_ParentContacts WHERE Email1 LIKE '".$_SESSION['useremail']."'";
-	        $result = $db->query($sql);
-	        while($row = $result->fetch_assoc()){
-						//for records that match find kids associated with that email
-	          $sql2 = "SELECT token, studentId FROM student_tokens WHERE studentId = '".$row['StudentID']."'";
-	          $result2 = $db->query($sql2);
-	          while($row2 = $result2->fetch_assoc()){
-							$studenttokenencrypted = $row2['token'];
-	            $studentId = $row2['studentId'];
-
-	            //Check to see if student has already been claimed by parent
-	            $sqlcheck = "SELECT COUNT(*) FROM parent_students WHERE student_token = '$studenttokenencrypted' AND parent_id = $parent_id AND studentId = '$studentId'";
-	            $resultcheck = $db->query($sqlcheck);
-							$resultrow = $resultcheck->fetch_assoc();
-	            $numrows2 = $resultrow["COUNT(*)"];
-
-	            //this parent does not have access
-	            if($numrows2 == 0 && $_SESSION['useremail'] != ''){
-								$stmt = $db->stmt_init();
-	              $sql = "INSERT INTO parent_students (parent_id, student_token, studentId) VALUES (?, ?, ?)";
-	              $stmt->prepare($sql);
-	              $stmt->bind_param("iss", $parent_id, $studenttokenencrypted, $row2['studentId']);
-	              $stmt->execute();
-	              $stmt->close();
-						}
-					}
-				}
-			}
-      $db->close();
-
-      include "abre_dbconnect.php";
+      // if($db->query("SELECT * FROM student_tokens LIMIT 1") && $db->query("SELECT * FROM users_parent LIMIT 1")
+      //     && $db->query("SELECT * FROM Abre_Students LIMIT 1") && $db->query("SELECT * FROM Abre_ParentContacts LIMIT 1")){
+			// 		//see if email matches any records
+	    //     $sql = "SELECT StudentID FROM Abre_ParentContacts WHERE Email1 LIKE '".$_SESSION['useremail']."' AND primary_contact = 'Y' AND siteID = '".$_SESSION['siteID']."'";
+	    //     $result = $db->query($sql);
+	    //     while($row = $result->fetch_assoc()){
+			// 			//for records that match find kids associated with that email
+	    //       $sql2 = "SELECT token, studentId FROM student_tokens WHERE studentId = '".$row['StudentID']."' AND siteID = '".$_SESSION['siteID']."'";
+	    //       $result2 = $db->query($sql2);
+	    //       while($row2 = $result2->fetch_assoc()){
+			// 				$studenttokenencrypted = $row2['token'];
+	    //         $studentId = $row2['studentId'];
+			//
+	    //         //Check to see if student has already been claimed by parent
+	    //         $sqlcheck = "SELECT COUNT(*) FROM parent_students WHERE student_token = '$studenttokenencrypted' AND parent_id = $parent_id AND studentId = '$studentId' AND siteID = '".$_SESSION['siteID']."'";
+	    //         $resultcheck = $db->query($sqlcheck);
+			// 				$resultrow = $resultcheck->fetch_assoc();
+	    //         $numrows2 = $resultrow["COUNT(*)"];
+			//
+	    //         //this parent does not have access
+	    //         if($numrows2 == 0 && $_SESSION['useremail'] != ''){
+			// 					$stmt = $db->stmt_init();
+	    //           $sql = "INSERT INTO parent_students (parent_id, student_token, studentId, siteID) VALUES (?, ?, ?, ?)";
+	    //           $stmt->prepare($sql);
+	    //           $stmt->bind_param("issi", $parent_id, $studenttokenencrypted, $row2['studentId'], $_SESSION['siteID']);
+	    //           $stmt->execute();
+	    //           $stmt->close();
+			// 			}
+			// 		}
+			// 	}
+			// }
+      // $db->close();
+			//
+      // include "abre_dbconnect.php";
       if($db->query("SELECT * FROM student_tokens LIMIT 1") && $db->query("SELECT * FROM users_parent LIMIT 1")){
-				$sql = "SELECT student_token FROM parent_students WHERE parent_id = $parent_id";
+				$sql = "SELECT student_token FROM parent_students WHERE parent_id = $parent_id AND siteID = '".$_SESSION['siteID']."'";
         if($result = $db->query($sql)){
 					$_SESSION['auth_students'] = '';
           while($row = $result->fetch_assoc()){
-						$sql2 = "SELECT studentId FROM student_tokens WHERE token = '".$row['student_token']."'";
+						$sql2 = "SELECT studentId FROM student_tokens WHERE token = '".$row['student_token']."' AND siteID = '".$_SESSION['siteID']."'";
             $result2 = $db->query($sql2);
             $row2 = $result2->fetch_assoc();
             $_SESSION['auth_students'] .= $row2['studentId'].',';
@@ -239,6 +336,7 @@
           $_SESSION['auth_students'] = rtrim($_SESSION['auth_students'], ", ");
 				}
 			}
+			$db->close();
 		}
 	}
 
@@ -253,33 +351,6 @@
 		$db->close();
 
 		return $rowarray;
-	}
-
-	//Insert into the database
-	function databaseexecute($query){
-		include "abre_dbconnect.php";
-		$stmt = $db->stmt_init();
-		$stmt->prepare($query);
-		$stmt->execute();
-		$newcommentid = $stmt->insert_id;
-		$stmt->close();
-		$db->close();
-
-		return $newcommentid;
-	}
-
-	//Insert into the database
-	function pingupdate(){
-		$url = 'https://status.abre.io/installation.php';
-		$ch = curl_init($url);
-		$jsonData = array(
-		    'Domain' => "$portal_root"
-		);
-		$jsonDataEncoded = json_encode($jsonData);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonDataEncoded);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-		$result = curl_exec($ch);
 	}
 
 	//Save Screenshot to server
@@ -303,18 +374,19 @@
 		//Save image to server
 		$im = imagecreatefromstring($data);
 
+		$cloudsetting = getenv("USE_GOOGLE_CLOUD");
 		if ($cloudsetting=="true") {
 
 			$storage = new StorageClient([
-				'projectId' => constant("GC_PROJECT")
-			]);	
-			$bucket = $storage->bucket(constant("GC_BUCKET"));	
+				'projectId' => getenv("GC_PROJECT")
+			]);
+			$bucket = $storage->bucket(getenv("GC_BUCKET"));
 
 			$cloud_dir = "private_html/guide/";
 
-			ob_start (); 
+			ob_start ();
 			imagejpeg($im);
-			$image_data = ob_get_contents (); 
+			$image_data = ob_get_contents ();
 			ob_end_clean ();
 
 			$options = [
@@ -332,109 +404,32 @@
 		else {
 			if(!file_exists("../../../$portal_private_root/guide")){
 				mkdir("../../../$portal_private_root/guide", 0777, true);
-			}	
+			}
 			imagejpeg($im, "../../../$portal_private_root/guide/$filename");
 		}
 	}
 
-	//Retrieve Site Title
-	//DEPRECIATED
-	function sitesettings($value){
-		include "abre_dbconnect.php";
-		if(!$result = $db->query("SELECT * FROM settings LIMIT 1")){
-	  		$sql = "CREATE TABLE `settings` (`id` int(11) NOT NULL,`options` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-	  		$sql .= "INSERT INTO `settings` (`id`, `options`) VALUES (1, '');";
-	  		$sql .= "ALTER TABLE `settings` ADD PRIMARY KEY (`id`);";
-	  		$sql .= "ALTER TABLE `settings` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
-	  		$db->multi_query($sql);
+	// This function caches the db call using a static variable
+	function getSettingsDbValue($value) {
+		static $settingsData = null;
+		if(is_null($settingsData)) {
+			$settingsData = loadSettingsDbValue();
 		}
-
-		$sql2 = "SELECT options FROM settings LIMIT 1";
-		$result2 = $db->query($sql2);
-		if($result2){
-			while($row = $result2->fetch_assoc()){
-				$options = $row["options"];
-				if($options != ""){
-					$options = json_decode($options);
-					if(isset($options->$value)){
-						$valuereturn = $options->$value;
-					}else{
-						$valuereturn = "";
-					}
-				}else{
-					$valuereturn = "";
-				}
-				if(($value == "googleclientsecret" && $valuereturn != "") || ($value == "facebookclientsecret" && $valuereturn != "")
-				    || ($value == "microsoftclientsecret" && $valuereturn != "")){
-					$valuereturn = decrypt($valuereturn, '');
-				}
-				if($value == "sitetitle" && $valuereturn == ""){ $valuereturn = "Abre"; }
-				if($value == "sitecolor" && $valuereturn == ""){ $valuereturn = "#2B2E4A"; }
-				if($value == "sitedescription" && $valuereturn == ""){ $valuereturn = "Abre Open Platform for Education"; }
-				if($value == "sitelogintext" && $valuereturn == ""){ $valuereturn = "Open Platform for Education"; }
-				if($value == "siteanalytics" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "siteadminemail" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "sitevendorlinkurl" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "sitevendorlinkidentifier" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "sitevendorlinkkey" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "certicabaseurl" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "certicaaccesskey" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "studentdomain" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "studentdomainrequired" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "sitelogo" && $valuereturn !=""){
-					if($valuereturn != '/core/images/abre/abre_glyph.png'){
-						$valuereturn = "/content/$valuereturn";
-					}else{
-						$valuereturn="/core/images/abre/abre_glyph.png";
-					}
-				}
-				if($value == "sitelogo" && $valuereturn == ""){ $valuereturn = "/core/images/abre/abre_glyph.png"; }
-				if($value == "googleclientid" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "parentaccess" && $valuereturn == ""){ $valuereturn = "unchecked"; }
-				if($value == "googleclientsecret" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "facebookclientid" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "facebookclientsecret" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "microsoftclientid" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "microsoftclientsecret" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "abre_community" && $valuereturn == ""){ $valuereturn = "unchecked"; }
-				if($value == "community_first_name" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "community_last_name" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "community_email" && $valuereturn == ""){ $valuereturn = ""; }
-				if($value == "community_users" && $valuereturn == ""){ $valuereturn = ""; }
-			}
-		}
-		$db->close();
-		return $valuereturn;
+		if(!$settingsData) return null;
+		return $settingsData->$value;
 	}
 
-	function getSettingsDbValue($value){
+	function loadSettingsDbValue() {
 		include "abre_dbconnect.php";
-		$sql2 = "SELECT options FROM settings LIMIT 1";
-		$result2 = $db->query($sql2);
-		if($result2){
-			$row = $result2->fetch_assoc();
-			$options = $row["options"];
-			if($options != ""){
-				$options = json_decode($options);
-				if(isset($options->$value)){
-					$valuereturn = $options->$value;
-				}else{
-					$valuereturn = "";
-				}
-			}else{
-				$valuereturn = "";
-			}
-		}else{
-			$sql = "CREATE TABLE `settings` (`id` int(11) NOT NULL,`options` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-			$sql .= "INSERT INTO `settings` (`id`, `options`) VALUES (1, '');";
-			$sql .= "ALTER TABLE `settings` ADD PRIMARY KEY (`id`);";
-			$sql .= "ALTER TABLE `settings` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
-			$db->multi_query($sql);
-
-			$valuereturn = "";
+		if (!isset($_SESSION['siteID'])) return "";
+		$sql = "SELECT options FROM settings WHERE siteID = '".$_SESSION['siteID']."' LIMIT 1";
+		$query = $db->query($sql);
+		if($query) {
+			$row = $query->fetch_assoc();
+			$options = $row['options'];
 		}
 		$db->close();
-		return $valuereturn;
+		return isset($options) && $options != "" ? json_decode($options) : "";
 	}
 
 	function getSiteTitle(){
@@ -466,52 +461,31 @@
 	}
 
 	function getSiteAnalytics(){
-		$valuereturn = getSettingsDbValue('siteanalytics');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('siteanalytics');
 	}
 
 	function getSiteAnalyticsViewId(){
-		$valuereturn = getSettingsDbValue('analyticsViewId');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('analyticsViewId');
 	}
 
 	function getSiteAdminEmail(){
-		$valuereturn = getSettingsDbValue('siteadminemail');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('siteadminemail');
 	}
 
 	function getSiteCerticaBaseUrl(){
-		$valuereturn = getSettingsDbValue('certicabaseurl');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('certicabaseurl');
 	}
 
 	function getSiteCerticaAccessKey(){
-		$valuereturn = getSettingsDbValue('certicaaccesskey');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('certicaaccesskey');
 	}
 
 	function getSiteStudentDomain(){
-		$valuereturn = getSettingsDbValue('studentdomain');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('studentdomain');
 	}
 
 	function getSiteStudentDomainRequired(){
-		$valuereturn = getSettingsDbValue('studentdomainrequired');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('studentdomainrequired');
 	}
 
 	function getStaffStudentMatch(){
@@ -528,14 +502,14 @@
 		}else{
 			if($valuereturn != '/core/images/abre/abre_glyph.png'){
 
-				$cloudsetting=constant("USE_GOOGLE_CLOUD");
+				$cloudsetting = getenv("USE_GOOGLE_CLOUD");
 				if ($cloudsetting=="true") {
-					$bucket = constant("GC_BUCKET");
+					$bucket = getenv("GC_BUCKET");
 					$valuereturn = "https://storage.googleapis.com/$bucket/content/$valuereturn";
 				}
 				else {
 					$valuereturn = "/content/$valuereturn";
-				}			
+				}
 			}else{
 				$valuereturn="/core/images/abre/abre_glyph.png";
 			}
@@ -545,43 +519,28 @@
 	}
 
 	function getSiteAbreCommunity(){
-		$valuereturn = getSettingsDbValue('abre_community');
-		if($valuereturn == ""){ $valuereturn = "unchecked"; }
-
-		return $valuereturn;
+		return getSettingsDbValue('abre_community');
 	}
 
 	function getSiteCommunityFirstName(){
-		$valuereturn = getSettingsDbValue('community_first_name');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('community_first_name');
 	}
 
 	function getSiteCommunityLastName(){
-		$valuereturn = getSettingsDbValue('community_last_name');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('community_last_name');
 	}
 
 	function getSiteCommunityEmail(){
-		$valuereturn = getSettingsDbValue('community_email');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('community_email');
 	}
 
 	function getSiteCommunityUsers(){
-		$valuereturn = getSettingsDbValue('community_users');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getSettingsDbValue('community_users');
 	}
 
 	function getIntegrationsDbValue($value){
 		include "abre_dbconnect.php";
-		$sql2 = "SELECT integrations FROM settings LIMIT 1";
+		$sql2 = "SELECT integrations FROM settings WHERE siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$result2 = $db->query($sql2);
 		if($result2){
 			$row = $result2->fetch_assoc();
@@ -606,26 +565,20 @@
 	}
 
 	function getSoftwareAnswersURL(){
-		$valuereturn = getIntegrationsDbValue('softwareanswersurl');
-		if($valuereturn == ""){ $valuereturn = ""; }
-		return $valuereturn;
+		return getIntegrationsDbValue('softwareanswersurl');
 	}
 
 	function getSoftwareAnswersIdentifier(){
-		$valuereturn = getIntegrationsDbValue('softwareanswersidentifier');
-		if($valuereturn == ""){ $valuereturn = ""; }
-		return $valuereturn;
+		return getIntegrationsDbValue('softwareanswersidentifier');
 	}
 
 	function getSoftwareAnswersKey(){
-		$valuereturn = getIntegrationsDbValue('softwareanswerskey');
-		if($valuereturn == ""){ $valuereturn = ""; }
-		return $valuereturn;
+		return getIntegrationsDbValue('softwareanswerskey');
 	}
 
 	function getAuthenticationDbValue($value){
 		include "abre_dbconnect.php";
-		$sql2 = "SELECT authentication FROM settings LIMIT 1";
+		$sql2 = "SELECT authentication FROM settings WHERE siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$result2 = $db->query($sql2);
 		if($result2){
 			$row = $result2->fetch_assoc();
@@ -638,33 +591,54 @@
 					$valuereturn = "";
 				}
 			}else{
-				$valuereturn = "";
+				$array = [
+							"googleclientid" => getConfigGoogleClientID(),
+							"googleclientsecret" => encrypt(getConfigGoogleClientSecret(), ''),
+							"googlesigningroups" => ["staff", "students"]
+								];
+				$json = json_encode($array);
+
+				$stmt = $db->stmt_init();
+				$sql = "UPDATE settings SET authentication = ? WHERE siteID = ?";
+				$stmt->prepare($sql);
+				$stmt->bind_param("si", $json, $_SESSION['siteID']);
+				$stmt->execute();
+				$stmt->close();
+
+				if($value == "googleclientid"){
+					$valuereturn = $array['googleclientid'];
+				}elseif($value == "googleclientsecret"){
+					$valuereturn = decrypt($array['googleclientsecret'], "");
+				}elseif($value == 'googlesigningroups'){
+					$valuereturn = $array['googlesigningroups'];
+				}else{
+					$valuereturn = "";
+				}
 			}
 		}else{
 			$sql = "ALTER TABLE `settings` ADD `authentication` text NOT NULL;";
 			$db->multi_query($sql);
 
 			$array = [
-						"googleclientid" => constant("GOOGLE_CLIENT_ID"),
-						"googleclientsecret" => encrypt(constant("GOOGLE_CLIENT_SECRET"), ''),
+						"googleclientid" => getConfigGoogleClientID(),
+						"googleclientsecret" => encrypt(getConfigGoogleClientSecret(), ''),
 						"googlesigningroups" => ["staff", "students"]
 							];
 			$json = json_encode($array);
 
 			$stmt = $db->stmt_init();
-			$sql = "UPDATE settings SET authentication = ?";
+			$sql = "UPDATE settings SET authentication = ? WHERE siteID = ?";
 			$stmt->prepare($sql);
-			$stmt->bind_param("s", $json);
+			$stmt->bind_param("si", $json, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 
 			if($value == "googleclientid"){
-				$valuereturn = constant("GOOGLE_CLIENT_ID");
+				$valuereturn = $array['googleclientid'];
 			}elseif($value == "googleclientsecret"){
-				$valuereturn = constant("GOOGLE_CLIENT_SECRET");
+				$valuereturn = decrypt($array['googleclientsecret'], "");
 			}elseif($value == 'googlesigningroups'){
-				$json = json_decode($json);
-				$valuereturn = $json->googlesigningroups;
+				$valuereturn = $array['googlesigningroups'];
 			}else{
 				$valuereturn = "";
 			}
@@ -674,104 +648,86 @@
 	}
 
 	function getSiteGoogleClientId(){
-		$valuereturn = getAuthenticationDbValue('googleclientid');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getAuthenticationDbValue('googleclientid');
 	}
 
 	function getSiteGoogleClientSecret(){
 		$valuereturn = getAuthenticationDbValue('googleclientsecret');
 		if($valuereturn == ""){
-			$valuereturn = "";
+			return "";
 		}else{
-			$valuereturn = decrypt($valuereturn, '');
+			return decrypt($valuereturn, '');
 		}
-
-		return $valuereturn;
 	}
 
 	function getSiteGoogleSignInGroups($group){
 		$valuereturn = getAuthenticationDbValue('googlesigningroups');
 		if($valuereturn == ""){
-			$valuereturn = "";
+			return "";
 		}else{
 			if(in_array($group, $valuereturn)){
-				$valuereturn = "checked";
+				return "checked";
 			}else{
-				$valuereturn = "";
+				return "";
 			}
 		}
-		return $valuereturn;
 	}
 
 	function getSiteFacebookClientId(){
-		$valuereturn = getAuthenticationDbValue('facebookclientid');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getAuthenticationDbValue('facebookclientid');
 	}
 
 	function getSiteFacebookClientSecret(){
 		$valuereturn = getAuthenticationDbValue('facebookclientsecret');
 		if($valuereturn == ""){
-			$valuereturn = "";
+			return "";
 		}else{
-			$valuereturn = decrypt($valuereturn, '');
+			return decrypt($valuereturn, '');
 		}
-
-		return $valuereturn;
 	}
 
 	function getSiteFacebookSignInGroups($group){
 		$valuereturn = getAuthenticationDbValue('facebooksigningroups');
 		if($valuereturn == ""){
-			$valuereturn = "";
+			return "";
 		}else{
 			if(in_array($group, $valuereturn)){
-				$valuereturn = "checked";
+				return "checked";
 			}else{
-				$valuereturn = "";
+				return "";
 			}
 		}
-		return $valuereturn;
 	}
 
 	function getSiteMicrosoftClientId(){
-		$valuereturn = getAuthenticationDbValue('microsoftclientid');
-		if($valuereturn == ""){ $valuereturn = ""; }
-
-		return $valuereturn;
+		return getAuthenticationDbValue('microsoftclientid');
 	}
 
 	function getSiteMicrosoftClientSecret(){
 		$valuereturn = getAuthenticationDbValue('microsoftclientsecret');
 		if($valuereturn == ""){
-			$valuereturn = "";
+			return "";
 		}else{
-			$valuereturn = decrypt($valuereturn, '');
+			return decrypt($valuereturn, '');
 		}
-
-		return $valuereturn;
 	}
 
 	function getSiteMicrosoftSignInGroups($group){
 		$valuereturn = getAuthenticationDbValue('microsoftsigningroups');
 		if($valuereturn == ""){
-			$valuereturn = "";
+			return "";
 		}else{
 			if(in_array($group, $valuereturn)){
-				$valuereturn = "checked";
+				return "checked";
 			}else{
-				$valuereturn = "";
+				return "";
 			}
 		}
-		return $valuereturn;
 	}
 
 	function getUpdateRequiredDbValue(){
 		include "abre_dbconnect.php";
-		$sql2 = "SELECT `update_required` FROM settings LIMIT 1";
+		$sql2 = "SELECT `update_required` FROM settings WHERE siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$result2 = $db->query($sql2);
 		if($result2){
 			$row = $result2->fetch_assoc();
@@ -787,53 +743,54 @@
 		}
 	}
 
-	function isAppInstalled($appName){
-		include "abre_dbconnect.php";
-		$sql = "SELECT COUNT(*) FROM apps_abre WHERE app='$appName' AND installed = 1";
-		$query = $db->query($sql);
-		$result = $query->fetch_assoc();
-		$count = $result["COUNT(*)"];
-		if($count == 1){
-			return true;
-		}
-		return false;
+	function isAppInstalled($appName) {
+		$app = getAppOverviewData();
+		return isset($app[$appName]) && isset($app[$appName]["installed"]) && $app[$appName]["installed"];
 	}
 
-	function isAppActive($appName){
-		//return true if any of these apps are checked. This is primarily used for the edit widgets view.
-		if($appName == "calendar" || $appName == "classroom" || $appName == "drive" || $appName == "mail"){
-			return true;
-		}
-		include "abre_dbconnect.php";
-		$sql = "SELECT COUNT(*) FROM apps_abre WHERE app='$appName' AND active = 1";
-		$query = $db->query($sql);
-		$result = $query->fetch_assoc();
-		$count = $result["COUNT(*)"];
-		if($count == 1){
-			return true;
-		}
-		return false;
+	function isAppActive($appName) {
+		$app = getAppOverviewData();
+		return isset($app[$appName]) && isset($app[$appName]["active"]) && $app[$appName]["active"];
 	}
 
-	function activateApp($appName){
+	function getAppOverviewData() {
+		static $appData = null;
+		if(is_null($appData)) {
+			$appData = loadAppOverviewData();
+		}
+		return $appData;
+	}
+
+	function loadAppOverviewData() {
 		include "abre_dbconnect.php";
-		$active = 1;
-		$installed = 0;
+		$sql = "SELECT app, active, installed FROM apps_abre
+						WHERE siteID = ?";
 
 		$stmt = $db->stmt_init();
-		$insertSql = "INSERT INTO apps_abre (app, active, installed) VALUES (?, ?, ?)";
-		$stmt->prepare($insertSql);
+		$stmt->prepare($sql);
+		$stmt->bind_param("i", $_SESSION['siteID']);
+		$stmt->execute();
+		$stmt->bind_result($name, $active, $installed);
 
-		$sql = "SELECT COUNT(*) FROM apps_abre WHERE app = '$appName'";
-		$query = $db->query($sql);
-		$result = $query->fetch_assoc();
-		$count = $result["COUNT(*)"];
-		if($count == 0){
-			$stmt->bind_param("sii", $appName, $active, $installed);
-			$stmt->execute();
+		$apps = [];
+		while($stmt->fetch()) {
+			$apps[$name] = ["active" => $active, "installed" => $installed];
 		}
-		$stmt->close();
+
 		$db->close();
+
+		$apps = addNonDbApps($apps);
+		return $apps;
+	}
+
+	function addNonDbApps($apps) {
+		$dbApps = ["calendar", "classroom", "drive", "mail", "modules"];
+
+		foreach($dbApps as $app) {
+			$apps[$app] = ["active" => true, "installed" => true];
+		}
+
+		return $apps;
 	}
 
 	function linkify($value, $protocols = array('http', 'mail'), array $attributes = array()){
@@ -990,7 +947,7 @@
 		$schoolCodeArray = array();
 		if($_SESSION['usertype'] == "staff"){
 			if($db->query("SELECT * FROM Abre_Staff LIMIT 1")){
-				$sql = "SELECT SchoolCode FROM Abre_Staff WHERE EMail1 = '".$_SESSION['useremail']."'";
+				$sql = "SELECT SchoolCode FROM Abre_Staff WHERE EMail1 = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 				$resultrow = $db->query($sql);
 				$count = mysqli_num_rows($resultrow);
 				while($result = $resultrow->fetch_assoc()){
@@ -1000,13 +957,13 @@
 		}
 
 		if($_SESSION['usertype'] == "student"){
-			$sql = "SELECT StudentID FROM Abre_AD WHERE Email = '".$_SESSION['useremail']."'";
+			$sql = "SELECT StudentID FROM Abre_AD WHERE Email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 			$query = $db->query($sql);
 			$result = $query->fetch_assoc();
 			$studentID = $result["StudentID"];
 			if(isset($studentID)){
 				if($db->query("SELECT * FROM Abre_Students LIMIT 1")){
-					$sql = "SELECT SchoolCode FROM Abre_Students WHERE StudentId = '$studentID' LIMIT 1";
+					$sql = "SELECT SchoolCode FROM Abre_Students WHERE StudentId = '$studentID' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 					$resultrow = $db->query($sql);
 					$result = $resultrow->fetch_assoc();
 					array_push($schoolCodeArray, $result['SchoolCode']);
@@ -1021,7 +978,7 @@
 	function AdminCheck($email){
 		include "abre_dbconnect.php";
 		$contract = encrypt('Administrator', "");
-		$sql = "SELECT COUNT(*) FROM directory WHERE email = '$email' AND contract = '$contract'";
+		$sql = "SELECT COUNT(*) FROM directory WHERE email = '$email' AND contract = '$contract' AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		$returnrow = $result->fetch_assoc();
 		$count = $returnrow["COUNT(*)"];
@@ -1040,11 +997,11 @@
 		$image = 'data://application/octet-stream;base64,' . base64_encode($image);
 
 		$mime = getimagesize($image);
-		$width = $mime[0]; 
+		$width = $mime[0];
 
-		if ($width < 1000) { 
+		if ($width < 1000) {
 			$data = explode( ',', $image );
-			$image = base64_decode( $data[ 1 ]);	
+			$image = base64_decode( $data[ 1 ]);
 			return $image;
 		}
 		if($mime['mime'] == 'image/jpeg'){ $imagecreated = imagecreatefromjpeg($image); }
@@ -1052,7 +1009,7 @@
 		if($mime['mime'] == 'image/png'){ $imagecreated = imagecreatefrompng($image); }
 		if($mime['mime'] == 'image/gif'){ $imagecreated = imagecreatefromgif($image); }
 		$imageScaled = imagescale($imagecreated, $maxsize);
-	
+
 		ob_start ();
 		if($mime['mime'] == 'image/jpeg'){ imagejpeg($imageScaled, null, $quality); }
 		if($mime['mime'] == 'image/jpg'){ imagejpeg($imageScaled, null, $quality); }
@@ -1069,7 +1026,7 @@
 	//Resize Image
 	function ResizeImage($image, $maxsize, $quality){
 		$mime = getimagesize($image);
-		$width = $mime[0]; 
+		$width = $mime[0];
 		if ($width < 1000) return;
 		if($mime['mime'] == 'image/jpeg'){ $imagecreated = imagecreatefromjpeg($image); }
 		if($mime['mime'] == 'image/jpg'){ $imagecreated = imagecreatefromjpeg($image); }
@@ -1086,22 +1043,43 @@
 	//Get Staff Name Given Email
 	function GetStaffName($email){
 		include "abre_dbconnect.php";
-		if($email == $_SESSION['useremail']){
-			return "Me";
-		}else{
-			$email = strtolower($email);
-			if($db->query("SELECT * FROM Abre_Staff LIMIT 1")){
-				$query = "SELECT FirstName, LastName FROM Abre_Staff WHERE EMail1 LIKE '$email' LIMIT 1";
-				$dbreturn = databasequery($query);
-				foreach ($dbreturn as $value){
-					$FirstName = htmlspecialchars($value["FirstName"], ENT_QUOTES);
-					$LastName = htmlspecialchars($value["LastName"], ENT_QUOTES);
-					return "$FirstName $LastName";
-				}
+		$email = strtolower($email);
+		$emailEscaped = mysqli_real_escape_string($db, $email);
+
+		//Check Staff Table
+		$query = "SELECT FirstName, LastName FROM Abre_Staff WHERE EMail1 LIKE '$emailEscaped' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
+		$dbreturn = databasequery($query);
+		foreach ($dbreturn as $value){
+			$FirstName = htmlspecialchars($value["FirstName"], ENT_QUOTES);
+			$LastName = htmlspecialchars($value["LastName"], ENT_QUOTES);
+			if($email == $_SESSION['useremail']){
+				$db->close();
+				return "$FirstName $LastName (You)";
 			}
-			$db->close();
-			return $email;
+			else {
+				$db->close();
+				return "$FirstName $LastName";
+			}
 		}
+
+		//Check Directory Table
+		$query = "SELECT firstname, lastname FROM directory WHERE email LIKE '$emailEscaped' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
+		$dbreturn = databasequery($query);
+		foreach ($dbreturn as $value){
+			$FirstName = htmlspecialchars($value["firstname"], ENT_QUOTES);
+			$LastName = htmlspecialchars($value["lastname"], ENT_QUOTES);
+			if($email == $_SESSION['useremail']){
+				$db->close();
+				return "$FirstName $LastName (You)";
+			}
+			else {
+				$db->close();
+				return "$FirstName $LastName";
+			}
+		}
+		$db->close();
+
+		return $email;
 	}
 
 	//Get Staff FirstName Given Email
@@ -1109,7 +1087,7 @@
 		include "abre_dbconnect.php";
 		$email = strtolower($email);
 		if($db->query("SELECT * FROM Abre_Staff LIMIT 1")){
-			$query = "SELECT FirstName FROM Abre_Staff WHERE EMail1 LIKE '$email' LIMIT 1";
+			$query = "SELECT FirstName FROM Abre_Staff WHERE EMail1 LIKE '$email' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 			$dbreturn = databasequery($query);
 			foreach ($dbreturn as $value){
 				$FirstName = htmlspecialchars($value["FirstName"], ENT_QUOTES);
@@ -1117,7 +1095,7 @@
 			}
 		}
 
-		$query = "SELECT firstname FROM directory WHERE email LIKE '$email' LIMIT 1";
+		$query = "SELECT firstname FROM directory WHERE email LIKE '$email' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$dbreturn = databasequery($query);
 		foreach ($dbreturn as $value){
 			$FirstName = htmlspecialchars($value["firstname"], ENT_QUOTES);
@@ -1132,7 +1110,7 @@
 		include "abre_dbconnect.php";
 		$email = strtolower($email);
 		if($db->query("SELECT * FROM Abre_Staff LIMIT 1")){
-			$query = "SELECT LastName FROM Abre_Staff WHERE EMail1 LIKE '$email' LIMIT 1";
+			$query = "SELECT LastName FROM Abre_Staff WHERE EMail1 LIKE '$email' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 			$dbreturn = databasequery($query);
 			foreach ($dbreturn as $value){
 				$LastName = htmlspecialchars($value["LastName"], ENT_QUOTES);
@@ -1140,7 +1118,7 @@
 			}
 		}
 
-		$query = "SELECT lastname FROM directory WHERE email LIKE '$email' LIMIT 1";
+		$query = "SELECT lastname FROM directory WHERE email LIKE '$email' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$dbreturn = databasequery($query);
 		foreach ($dbreturn as $value){
 			$LastName = htmlspecialchars($value["lastname"], ENT_QUOTES);
@@ -1155,7 +1133,7 @@
 		include "abre_dbconnect.php";
 		$email = strtolower($email);
 		if($db->query("SELECT * FROM Abre_Staff LIMIT 1")){
-			$query = "SELECT StaffID FROM Abre_Staff WHERE EMail1 LIKE '$email' LIMIT 1";
+			$query = "SELECT StaffID FROM Abre_Staff WHERE EMail1 LIKE '$email' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 			$dbreturn = databasequery($query);
 			foreach ($dbreturn as $value){
 				$StaffID = htmlspecialchars($value["StaffID"], ENT_QUOTES);
@@ -1170,20 +1148,13 @@
 	function GetStudentFirstName($email){
 		include "abre_dbconnect.php";
 		$email = strtolower($email);
-		if($db->query("SELECT * FROM Abre_AD LIMIT 1")){
-			$query = "SELECT StudentID FROM Abre_AD WHERE Email LIKE '$email' LIMIT 1";
-			$dbreturn = databasequery($query);
-			if($db->query("SELECT * FROM Abre_Students LIMIT 1")){
-				foreach ($dbreturn as $value){
-					$StudentID = htmlspecialchars($value["StudentID"], ENT_QUOTES);
-					$query2 = "SELECT FirstName FROM Abre_Students WHERE StudentId = '$StudentID' LIMIT 1";
-					$dbreturn2 = databasequery($query2);
-					foreach ($dbreturn2 as $value2){
-						$FirstName = htmlspecialchars($value2["FirstName"], ENT_QUOTES);
-					}
-					return $FirstName;
-				}
-			}
+		$query = "SELECT students.FirstName FROM Abre_AD
+		JOIN Abre_Students AS students ON Abre_AD.StudentID = students.StudentId
+		WHERE Abre_AD.Email LIKE '$email' AND students.siteID = $_SESSION[siteID] AND Abre_AD.siteID = $_SESSION[siteID]";
+		$dbreturn = databasequery($query);
+		foreach($dbreturn as $value){
+			$FirstName = $value["FirstName"];
+			return $FirstName;
 		}
 		$db->close();
 		return "";
@@ -1193,20 +1164,13 @@
 	function GetStudentLastName($email){
 		include "abre_dbconnect.php";
 		$email = strtolower($email);
-		if($db->query("SELECT * FROM Abre_AD LIMIT 1")){
-		$query = "SELECT StudentID FROM Abre_AD WHERE Email LIKE '$email' LIMIT 1";
-			$dbreturn = databasequery($query);
-			if($db->query("SELECT * FROM Abre_Students LIMIT 1")){
-				foreach ($dbreturn as $value){
-					$StudentID = htmlspecialchars($value["StudentID"], ENT_QUOTES);
-					$query2 = "SELECT LastName FROM Abre_Students WHERE StudentId = '$StudentID' LIMIT 1";
-					$dbreturn2 = databasequery($query2);
-					foreach ($dbreturn2 as $value2){
-						$LastName = htmlspecialchars($value2["LastName"], ENT_QUOTES);
-					}
-					return $LastName;
-				}
-			}
+		$query = "SELECT students.LastName FROM Abre_AD
+		JOIN Abre_Students AS students ON Abre_AD.StudentID = students.StudentId
+		WHERE Abre_AD.Email LIKE '$email' AND students.siteID = $_SESSION[siteID] AND Abre_AD.siteID = $_SESSION[siteID]";
+		$dbreturn = databasequery($query);
+		foreach($dbreturn as $value){
+			$LastName = $value["LastName"];
+			return $LastName;
 		}
 		$db->close();
 		return "";
@@ -1216,13 +1180,11 @@
 	function GetStudentUniqueID($email){
 		include "abre_dbconnect.php";
 		$email = strtolower($email);
-		if($db->query("SELECT * FROM Abre_AD LIMIT 1")){
-			$query = "SELECT StudentID FROM Abre_AD WHERE Email LIKE '$email' LIMIT 1";
-			$dbreturn = databasequery($query);
-			foreach ($dbreturn as $value){
-				$StudentID = htmlspecialchars($value["StudentID"], ENT_QUOTES);
-				return $StudentID;
-			}
+		$query = "SELECT StudentID FROM Abre_AD WHERE Email LIKE '$email' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
+		$dbreturn = databasequery($query);
+		foreach ($dbreturn as $value){
+			$StudentID = htmlspecialchars($value["StudentID"], ENT_QUOTES);
+			return $StudentID;
 		}
 		$db->close();
 		return "";
@@ -1233,9 +1195,68 @@
 		$subject = "New Response";
 		$message = 'Your form, '.$formName.', has a new response. <a href='.$url.'>View all responses now!</a>';
 		$headers = "From: noreply@abre.io";
-		$headers  .= "MIME-Version: 1.0\r\n";
+		$headers .= "MIME-Version: 1.0\r\n";
 		$headers .= "Content-type: text/html; charset=iso-8859-1\r\n";
-		mail($to,$subject,$message,$headers);
+
+		$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+		if ($cloudsetting=="true") {
+			$email = new \SendGrid\Mail\Mail();
+			$email->setFrom("noreply@abre.io", null);
+			$email->setSubject($subject);
+			$email->addTo($to, null);
+			$email->addContent("text/plain", $message);
+			$sendgrid = new \SendGrid(getenv('SENDGRID_API_KEY'));
+			try {
+				$response = $sendgrid->send($email);
+			} catch (Exception $e) {
+				//echo 'Caught exception: '. $e->getMessage() ."\n";
+			}
+		}
+		else {
+			mail($to,$subject,$message,$headers);
+		}
 	}
 
+	function getOpenWidgets() {
+		static $openWidgets = null;
+		if(is_null($openWidgets)) {
+			$openWidgets = loadOpenWidgets();
+		}
+		return $openWidgets;
+	}
+
+	function loadOpenWidgets() {
+		require('abre_dbconnect.php');
+		$sql = "SELECT widgets_open FROM profiles
+						WHERE email = ? AND siteID = ?";
+
+		$stmt = $db->stmt_init();
+		$stmt->prepare($sql);
+		$stmt->bind_param('si', $_SESSION['escapedemail'], $_SESSION['siteID']);
+		$stmt->execute();
+		$stmt->bind_result($widgetsOpen);
+
+		return $stmt->fetch() ? explode(',', $widgetsOpen) : [];
+	}
+
+	//Display Widget
+	function DisplayWidget($path, $icon, $title, $color, $url, $newtab) {
+		$URLPath = "/modules/$path/widget_content.php";
+		$active = in_array($path, getOpenWidgets()) ? "active" : "";
+	?>
+		<ul class="widget mdl-card mdl-shadow--2dp hoverable" style="width:100%;" data-collapsible="accordion">
+			<li class="widgetli" data-path="<?= $path ?>">
+				<div class="collapsible-header <?= $active ?>" data-path="<?= $URLPath ?>"
+						data-widget="<?= $path ?>" style="border-top: solid 3px <?= $color ?>">
+					<span class="widgeticonlink" data-link="<?= $url ?>" data-newtab="<?= $newtab ?>">
+					<i class="material-icons" style="color: <?= $color ?>"><?= $icon ?></i>
+					<span style="color:#000;"><?= $title ?></span>
+					</span>
+					<i class="right material-icons" style="color: #666; margin-right:2px;">expand_more</i>
+				</div>
+				<div class="collapsible-body" id="widgetbody_<?= $path ?>"></div>
+			</li>
+		</ul>
+<?php
+	}
 ?>

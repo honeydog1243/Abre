@@ -17,13 +17,15 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require_once('permissions.php');
+	$portal_private_root = getConfigPortalPrivateRoot();
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
@@ -32,71 +34,70 @@
 		$id = $_GET["id"];
 
 		//Delete Picture
-		include "../../core/abre_dbconnect.php";
-		$sql = "SELECT picture FROM directory where id = $id";
+		$sql = "SELECT picture FROM directory WHERE id = $id AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$oldpicture = htmlspecialchars($row["picture"], ENT_QUOTES);
 			if($oldpicture != ""){
 				if ($cloudsetting=="true") {
 					$storage = new StorageClient([
-						'projectId' => constant("GC_PROJECT")
-					]);	
-					$bucket = $storage->bucket(constant("GC_BUCKET"));			
+						'projectId' => getenv("GC_PROJECT")
+					]);
+					$bucket = $storage->bucket(getenv("GC_BUCKET"));
 
 					$cloud_dir = "private_html/directory/images/employees/" . $oldpicture;
-					$object = $bucket->object($cloud_dir);
-					$object->delete();
+					if($bucket->object($cloud_dir)->exists()){
+						$object = $bucket->object($cloud_dir);
+						$object->delete();
+					}
 				}
 				else {
 					$oldfile = dirname(__FILE__) . "/../../../$portal_private_root/directory/images/employees/" . $oldpicture;
-					unlink($oldfile);	
+					unlink($oldfile);
 				}
 			}
 		}
-		$db->close();
 
 		//Delete Discipline Files
-		include "../../core/abre_dbconnect.php";
-		$sql = "SELECT Filename FROM directory_discipline where UserID = $id";
+		$sql = "SELECT Filename FROM directory_discipline WHERE UserID = $id AND siteID = '".$_SESSION['siteID']."'";
 		$result = $db->query($sql);
 		while($row = $result->fetch_assoc()){
 			$filename = htmlspecialchars($row["Filename"], ENT_QUOTES);
 			if($filename != ""){
 				if ($cloudsetting=="true") {
 					$storage = new StorageClient([
-						'projectId' => constant("GC_PROJECT")
-					]);	
-					$bucket = $storage->bucket(constant("GC_BUCKET"));			
+						'projectId' => getenv("GC_PROJECT")
+					]);
+					$bucket = $storage->bucket(getenv("GC_BUCKET"));
 
 					$cloud_dir = "private_html/directory/discipline/" . $filename;
-					$object = $bucket->object($cloud_dir);
-					$object->delete();
+					if($bucket->object($cloud_dir)->exists()){
+						$object = $bucket->object($cloud_dir);
+						$object->delete();
+					}
 				}
 				else {
 					$filename = dirname(__FILE__) . "/../../../$portal_private_root/directory/discipline/" . $filename;
-					unlink($filename);	
+					unlink($filename);
 				}
 			}
 		}
-		$db->close();
 
 		//Delete the Records
-		include "../../core/abre_dbconnect.php";
-		$stmtrecord = $db->prepare("DELETE from directory_discipline where UserID = ?");
-		$stmtrecord->bind_param("i",$id);
+		$stmtrecord = $db->prepare("DELETE FROM directory_discipline WHERE UserID = ? AND siteID = ?");
+		$stmtrecord->bind_param("ii",$id, $_SESSION['siteID']);
 		$stmtrecord->execute();
 		$stmtrecord->close();
-		$db->close();
 
 		//Remove from Database
-		include "../../core/abre_dbconnect.php";
 		$stmt = $db->stmt_init();
-		$sql = "DELETE FROM directory WHERE id = ? LIMIT 1";
+		$sql = "DELETE FROM directory WHERE id = ? AND siteID = ? LIMIT 1";
 		$stmt->prepare($sql);
-		$stmt->bind_param("i", $id);
+		$stmt->bind_param("ii", $id, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
+
+		//Close Database
 		$db->close();
 
 		echo "Employee Deleted!";

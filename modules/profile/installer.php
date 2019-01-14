@@ -28,7 +28,7 @@
       $sql = "CREATE TABLE `profiles` (`id` int(11) NOT NULL,`email` text NOT NULL,`startup` int(11) NOT NULL DEFAULT '1',`streams` text NOT NULL,`apps_order` text NOT NULL,`work_calendar` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
       $sql .= "ALTER TABLE `profiles` ADD PRIMARY KEY (`id`);";
       $sql .= "ALTER TABLE `profiles` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
-      $sql .= "INSERT INTO `profiles` (`id`, `email`, `startup`, `streams`, `apps_order`, `work_calendar`) VALUES (NULL, '".$_SESSION['useremail']."', '', '');";
+      $sql .= "INSERT INTO `profiles` (`id`, `email`, `startup`, `streams`, `apps_order`, `work_calendar`, siteID) VALUES (NULL, '".$_SESSION['escapedemail']."', '', '', '".$_SESSION['siteID']."');";
       if ($db->multi_query($sql) === TRUE) { }
     }
     $db->close();
@@ -139,6 +139,13 @@
 		}
 		$db->close();
 
+		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM headlines LIMIT 1")){
+			$sql = "ALTER TABLE `headlines` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
+		}
+		$db->close();
+
 		//Check for headline_responses table
 		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 		if(!$db->query("SELECT * FROM headline_responses LIMIT 1")){
@@ -174,9 +181,16 @@
 		}
 		$db->close();
 
+		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM headline_responses LIMIT 1")){
+			$sql = "ALTER TABLE `headline_responses` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
+		}
+		$db->close();
+
 		//Mark app as installed
 		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-		$sql = "UPDATE apps_abre SET installed = 1 WHERE app = 'profile'";
+		$sql = "UPDATE apps_abre SET installed = 1 WHERE app = 'profile' AND siteID = '".$_SESSION['siteID']."'";
 		$db->multi_query($sql);
 		$db->close();
 	}

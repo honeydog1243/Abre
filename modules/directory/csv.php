@@ -17,31 +17,43 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require_once('permissions.php');
+	$portal_root = getConfigPortalRoot();
 
 	if($pageaccess == 1){
 
 		$color = getSiteColor();
 		echo "<div class='row'><div class='col s12'>";
 			echo "<div class='row'>";
-				echo "<div class='col s6'>";
+				echo "<div class='col s12'>";
 					echo "<h5>Downloads</h5>";
-					echo "<a href='$portal_root/modules/directory/csvexportfile.php' style='color:$color'>Staff - All Active Staff</a><br>";
-					echo "<a href='$portal_root/modules/directory/csvexportfile_licenseexpiring.php' style='color:$color'>Staff - License Expiring</a><br>";
-					echo "<a href='$portal_root/modules/directory/csvexportfile_workcalendars.php' style='color:$color'>Staff - Work Calendars</a>";
+					echo "<table class='highlight'><thead><tr><th>Report</th></tr></thead><tbody>";
+					echo "<tr data-link='$portal_root/modules/directory/csvexportfile.php' class='reportdownload pointer'><td><strong>All Active Staff</strong></td></tr>";
+					echo "<tr data-link='$portal_root/modules/directory/csvexportfile_licenseexpiring.php' class='reportdownload pointer'><td><strong>Expiring License</strong></td></tr>";
+					echo "<tr data-link='$portal_root/modules/directory/csvexportfile_workcalendars.php' class='reportdownload pointer'><td><strong>Work Calendars</strong></td></tr>";
+					echo "<tr data-link='$portal_root/modules/directory/directoryTemplate.csv' class='reportdownload pointer'><td><strong>Data Import Template</strong></td></tr>";
+					echo "</tbody></table>";
 				echo "</div>";
-				echo "<div class='col s6'>";
 				if(admin()){
-					echo "<h5>Imports</h5>";
-					echo "<form action='modules/directory/csvimportfile.php' method='post' enctype='multipart/form-data' name='form-upload' id='form-upload'>";
-	        echo "<input name='csv_data' type='file' id='csv_data' />";
-	        echo "<br><br><input type='submit' class='mdl-button mdl-js-button mdl-button--raised mdl-button--colored' style='background-color:$color' name='Submit' value='Import' />";
-				  echo "<br><br><a href='$portal_root/modules/directory/directoryTemplate.csv' style='color:$color'>Download template file</a>";
-	        echo "</form>";
+					echo "<div class='col s12'>";
+						echo "<h5>Data Import</h5>";
+						echo "<p>After downloading and filling in the data import template, choose the file and click 'Import' to add new data.</p>";
+						echo "<form action='modules/directory/csvimportfile.php' method='post' enctype='multipart/form-data' name='form-upload' id='form-upload'>";
+		        echo "<input name='csv_data' type='file' id='csv_data' />";
+		        echo "<br><br><input type='submit' class='mdl-button mdl-js-button mdl-button--raised mdl-button--colored' style='background-color:$color' name='Submit' value='Import' />";
+		        echo "</form>";
+					echo "</div>";
+				}
+				if(superadmin()){
+					echo "<div class='col s12'>";
+						echo "<h5>Purge Data</h5>";
+						echo "<p>To permanently remove all directory data click 'Purge Data'. This action can not be undone.</p>";
+		        echo "<button class='mdl-button mdl-js-button mdl-button--raised mdl-button--colored purge' style='background-color:$color'>Purge Data</button>";
+					echo "</div>";
 	      }
-			 echo "</div>";
 		 echo "</div>";
 		echo "</div>";
 ?>
@@ -50,6 +62,42 @@
 
 		//Process the Form
 		$(function() {
+
+			//Make Reports clickable
+			$(".reportdownload").unbind().click(function() {
+				 window.open($(this).data('link'), '_blank');
+			});
+
+			//Make Purge clickable
+			$(".purge").unbind().click(function() {
+				event.preventDefault();
+				var result = confirm("Are you sure you want to purge all data? This action can not be undone.");
+				if (result) {
+
+					var notification = document.querySelector('.mdl-js-snackbar');
+					var data = { message: 'Purging Data...' };
+					notification.MaterialSnackbar.showSnackbar(data);
+
+					//Make the post request
+					$.ajax({
+						type: 'POST',
+						url: 'modules/directory/purge.php',
+						data: '',
+					})
+
+					//Show the notification
+					.done(function(){
+
+						window.location.href = "#directory";
+
+						var notification = document.querySelector('.mdl-js-snackbar');
+						var data = { message: 'The data has been purged' };
+						notification.MaterialSnackbar.showSnackbar(data);
+
+					})
+				}
+
+			});
 
 			var form = $('#form-upload');
 			$(form).submit(function(event) {

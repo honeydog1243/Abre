@@ -18,7 +18,7 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	if(admin() || isStreamHeadlineAdministrator()){
@@ -28,16 +28,16 @@
 
 		//Delete the Stream
 		$stmt = $db->stmt_init();
-		$sql = "DELETE FROM streams WHERE id = ?";
+		$sql = "DELETE FROM streams WHERE id = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("i", $streamid);
+		$stmt->bind_param("ii", $streamid, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 
 		$stmt = $db->stmt_init();
-		$sql = "DELETE FROM stream_posts WHERE post_stream = ?";
+		$sql = "DELETE FROM stream_posts WHERE post_stream = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("s", $streamtitle);
+		$stmt->bind_param("si", $streamtitle, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

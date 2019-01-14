@@ -87,6 +87,21 @@
 
 				ga('set', 'page', '/#settings/usage/');
 				ga('send', 'pageview');
+	    },'settings/diagnostics': function(name) {
+				$( '#navigation_top' ).hide();
+				$( '#content_holder' ).hide();
+				$( '#loader' ).show();
+				$( '#titletext' ).text('Settings');
+				document.title = 'Settings';
+				$( '#content_holder' ).load( 'modules/settings/diagnostics.php', function() { init_page(); });
+
+				$('#navigation_top').show();
+				$('#navigation_top').load('modules/".basename(__DIR__)."/menu.php', function() {
+					$('.tab_5').addClass('tabmenuover');
+				});
+
+				ga('set', 'page', '/#settings/diagnostics/');
+				ga('send', 'pageview');
 	    },";
 	}
 ?>

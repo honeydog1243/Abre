@@ -11,3 +11,11 @@ a{
 .switch label input[type=checkbox]:checked+.lever:after{
   background-color: <?php echo $siteColor;?> !important;
 }
+
+.site-background-color {
+  background-color: <?php echo $siteColor; ?>;
+}
+
+.site-color {
+  color: <?php echo $siteColor; ?>;
+}

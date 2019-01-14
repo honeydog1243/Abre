@@ -18,7 +18,7 @@
 
   //Required configuration files
   require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-  require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+  require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
   require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
   if(admin() || isStreamHeadlineAdministrator()){
@@ -60,16 +60,16 @@
 
     if($headlineid == ""){
       $stmt = $db->stmt_init();
-      $sql = "INSERT INTO headlines (id, owner, title, content, purpose, form_id, video_id, groups, date_restriction, start_date, end_date, required) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+      $sql = "INSERT INTO headlines (id, owner, title, content, purpose, form_id, video_id, groups, date_restriction, start_date, end_date, required, siteID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
       $stmt->prepare($sql);
-      $stmt->bind_param("issssississi", $headlineid, $owner, $headlineTitle, $headlineContent, $headlinePurpose, $headlineForm, $headlineVideo, $headlineGroup, $dateRestriction, $headlineStartDate, $headlineEndDate, $headlineRequired);
+      $stmt->bind_param("issssississii", $headlineid, $owner, $headlineTitle, $headlineContent, $headlinePurpose, $headlineForm, $headlineVideo, $headlineGroup, $dateRestriction, $headlineStartDate, $headlineEndDate, $headlineRequired, $_SESSION['siteID']);
       $stmt->execute();
       $stmt->close();
     }else{
       $stmt = $db->stmt_init();
-      $sql = "UPDATE `headlines` SET title = ?, content = ?, purpose = ?, form_id = ?, video_id = ?, groups = ?, date_restriction = ?, start_date = ?, end_date = ?, required = ? WHERE id = ?";
+      $sql = "UPDATE `headlines` SET title = ?, content = ?, purpose = ?, form_id = ?, video_id = ?, groups = ?, date_restriction = ?, start_date = ?, end_date = ?, required = ? WHERE id = ? AND siteID = ?";
       $stmt->prepare($sql);
-      $stmt->bind_param("sssississii", $headlineTitle, $headlineContent, $headlinePurpose, $headlineForm, $headlineVideo, $headlineGroup, $dateRestriction, $headlineStartDate, $headlineEndDate, $headlineRequired, $headlineid);
+      $stmt->bind_param("sssississiii", $headlineTitle, $headlineContent, $headlinePurpose, $headlineForm, $headlineVideo, $headlineGroup, $dateRestriction, $headlineStartDate, $headlineEndDate, $headlineRequired, $headlineid, $_SESSION['siteID']);
       $stmt->execute();
     }
     $db->close();

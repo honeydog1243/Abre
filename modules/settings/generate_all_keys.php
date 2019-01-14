@@ -23,44 +23,46 @@
 	//Check for student_tokens table
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	if(!$db->query("SELECT * FROM student_tokens LIMIT 1")){
-		$sql = "CREATE TABLE `student_tokens` (`id` int(11) NOT NULL,`studentId` text NOT NULL,`token` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-    $sql .= "ALTER TABLE `student_tokens` ADD PRIMARY KEY (`id`);";
-    $sql .= "ALTER TABLE `student_tokens` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
-    $db->multi_query($sql);
+		$tableCreationSql = "CREATE TABLE `student_tokens` (`id` int(11) NOT NULL,`studentId` text NOT NULL,`token` text NOT NULL, `siteID` int(11) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+    $tableCreationSql .= "ALTER TABLE `student_tokens` ADD PRIMARY KEY (`id`);";
+    $tableCreationSql .= "ALTER TABLE `student_tokens` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;";
+    $db->multi_query($tableCreationSql);
+		while ($db->next_result()) {;}
 
-    require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-    $sql2 = "SELECT StudentId FROM Abre_Students";
-    $result = $db->query($sql2);
+    $studentSql = "SELECT StudentId FROM Abre_Students WHERE siteID = '".$_SESSION['siteID']."'";
+    $result = $db->query($studentSql);
     while($row = $result->fetch_assoc()){
       $id = $row['StudentId'];
       $stringToken = $id . time();
       $token = encrypt(substr(hash('sha256', $stringToken), 0, 10), "");
 
 			$stmt = $db->stmt_init();
-      $sql = "INSERT INTO `student_tokens` (`studentId`, `token`) VALUES (?, ?);";
-			$stmt->prepare($sql);
-			$stmt->bind_param("is", $id, $token);
+      $tokenGenerationSql = "INSERT INTO `student_tokens` (`studentId`, `token`, siteID) VALUES (?, ?, ?);";
+			$stmt->prepare($tokenGenerationSql);
+			$stmt->bind_param("isi", $id, $token, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
     }
 		$db->close();
 	}else{
 		//if database already exists delete it and re-add
-		$sql = "DELETE FROM `student_tokens`";
-    $db->multi_query($sql);
+		$studentTokensSql = "DELETE FROM `student_tokens` WHERE siteID = '".$_SESSION['siteID']."'";
+    $db->query($studentTokensSql);
 
-    require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-    $sql2 = "SELECT StudentId FROM Abre_Students";
-    $result = $db->query($sql2);
+		$parentStudentsSql = "DELETE FROM parent_students WHERE siteID = '".$_SESSION['siteID']."'";
+		$db->query($parentStudentsSql);
+
+    $studentSql = "SELECT StudentId FROM Abre_Students WHERE siteID = '".$_SESSION['siteID']."'";
+    $result = $db->query($studentSql);
     while($row = $result->fetch_assoc()){
       $id = $row['StudentId'];
       $stringToken = $id . time();
       $token = encrypt(substr(hash('sha256', $stringToken), 0, 10), "");
 
 			$stmt = $db->stmt_init();
-      $sql = "INSERT INTO `student_tokens` (`studentId`, `token`) VALUES (?, ?);";
-			$stmt->prepare($sql);
-			$stmt->bind_param("is", $id, $token);
+      $tokenGenerationSql = "INSERT INTO `student_tokens` (`studentId`, `token`, siteID) VALUES (?, ?, ?);";
+			$stmt->prepare($tokenGenerationSql);
+			$stmt->bind_param("isi", $id, $token, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
     }

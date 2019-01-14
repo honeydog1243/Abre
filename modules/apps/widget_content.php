@@ -18,7 +18,9 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_google_login.php');
+	$portal_root = getConfigPortalRoot();
 
 	if($_SESSION['usertype'] != 'parent'){
 
@@ -28,7 +30,7 @@
 		echo "</div>";
 
 
-		$query = "SELECT apps_order FROM profiles where email = '".$_SESSION['useremail']."'";
+		$query = "SELECT apps_order FROM profiles WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 		$gafecards = databasequery($query);
 		foreach ($gafecards as $value){
 			$apps_order = htmlspecialchars($value["apps_order"], ENT_QUOTES);
@@ -47,7 +49,7 @@
 			foreach($order as $value){
 				if ($appcount++ < 6){
 					include(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-					$sql = "SELECT id, title, image, link FROM apps WHERE id = '$value' AND ".$_SESSION['usertype']." = 1";
+					$sql = "SELECT id, title, image, link FROM apps WHERE id = '$value' AND ".$_SESSION['usertype']." = 1 AND siteID = '".$_SESSION['siteID']."'";
 					$result = $db->query($sql);
 					while($row = $result->fetch_assoc()){
 						if($appcount == 1){
@@ -68,7 +70,7 @@
 		}else{
 
 			include(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-			$sql = "SELECT id, title, image, link FROM apps WHERE ".$_SESSION['usertype']." = 1 AND required = 1 LIMIT 6";
+			$sql = "SELECT id, title, image, link FROM apps WHERE ".$_SESSION['usertype']." = 1 AND required = 1 AND siteID = '".$_SESSION['siteID']."' LIMIT 6";
 			$result = $db->query($sql);
 			while($row = $result->fetch_assoc()){
 				if($appcount == 0){
@@ -103,7 +105,7 @@
 			window.open($(this).find("a").attr("href"), '_blank');
 
 			//Track click
-			var linktitle = '/#apps/'+$(this).find("a").text()+'/';
+			var linktitle = '/#apps/'+$(this).find("a").text().trim()+'/';
 			ga('set', 'page', linktitle);
 			ga('send', 'pageview');
 		});

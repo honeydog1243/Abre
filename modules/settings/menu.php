@@ -20,42 +20,56 @@
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
+	$siteColor = getSiteColor();
+
 ?>
 
 <?php
-
-	if(admin()){
-
-    //Get Variables Passed to Page
-		if(isset($_GET["id"])){ $id = htmlspecialchars($_GET["id"], ENT_QUOTES); }else{ $id = ""; }
-
-	  echo "<div class='col s12'>";
-      echo "<ul class='tabs_2' style='background-color:".getSiteColor()."'>";
-        echo "<li class='tab col s3 tab_1 settingsmenu pointer' data='#settings'><a href='#settings'>";
-        	echo "<span class='hide-on-small-only'>General</span>";
-        	echo "<i class='material-icons hide-on-med-and-up'>settings</i>";
-        echo "</a></li>";
-				echo "<li class='tab col s3 tab_2 settingsmenu pointer' data='#settings/integrations'><a href='#settings/integrations'>";
-					echo "<span class='hide-on-small-only'>Integrations</span>";
-					echo "<i class='material-icons hide-on-med-and-up'>business</i>";
-				echo "</a></li>";
-				echo "<li class='tab col s3 tab_3 settingsmenu pointer' data='#settings/authentication'><a href='#settings/authentication'>";
-					echo "<span class='hide-on-small-only'>Authentication</span>";
-					echo "<i class='material-icons hide-on-med-and-up'>assignment_ind</i>";
-				echo "</a></li>";
-        if($_SESSION['auth_service'] == "google"){
-			echo "<li class='tab col s3 tab_4 settingsmenu pointer' data='#settings/usage'><a href='#settings/usage'>";
-				echo "<span class='hide-on-small-only'>Usage</span>";
-				echo "<i class='material-icons hide-on-med-and-up'>data_usage</i>";
-			echo "</a></li>";
-        }
-			echo "</ul>";
-		echo "</div>";
-
-	}
-
+	if(admin()) {
 ?>
 
+	  <div class="col s12">
+      <ul class="tabs_2" style="background-color: <?= $siteColor ?>">
+        <li class="tab col s3 tab_1 settingsmenu pointer" data="#settings">
+					<a href="#settings">
+        		<span class="hide-on-small-only">General</span>
+        		<i class="material-icons hide-on-med-and-up">settings</i>
+        	</a>
+				</li>
+				<li class="tab col s3 tab_2 settingsmenu pointer" data="#settings/integrations">
+					<a href="#settings/integrations">
+						<span class="hide-on-small-only">Integrations</span>
+						<i class="material-icons hide-on-med-and-up">business</i>
+					</a>
+				</li>
+				<li class="tab col s3 tab_3 settingsmenu pointer" data="#settings/authentication">
+					<a href="#settings/authentication">
+						<span class="hide-on-small-only">Authentication</span>
+						<i class="material-icons hide-on-med-and-up">assignment_ind</i>
+					</a>
+				</li>
+
+        <?php if($_SESSION["auth_service"] == "google") { ?>
+					<li class="tab col s3 tab_4 settingsmenu pointer" data="#settings/usage">
+						<a href="#settings/usage">
+							<span class="hide-on-small-only">Usage</span>
+							<i class="material-icons hide-on-med-and-up">data_usage</i>
+						</a>
+					</li>
+        <?php } ?>
+
+				<?php if(superadmin()) { ?>
+					<li class="tab col s3 tab_5 settingsmenu pointer" data="#settings/diagnostics">
+						<a href="#settings/diagnostics">
+							<span class="hide-on-small-only">Diagnostics</span>
+							<i class="material-icons hide-on-med-and-up">account_balance</i>
+						</a>
+					</li>
+				<?php } ?>
+			</ul>
+		</div>
+
+<?php } ?>
 
 <script>
 

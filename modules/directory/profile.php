@@ -17,18 +17,19 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require_once('permissions.php');
+	$portal_root = getConfigPortalRoot();
 
 	//Display User Profile Information
 	if($pageaccess == 1 or $pageaccess == 2){
 		$id = htmlspecialchars($_GET["id"], ENT_QUOTES);
 
 		if($id != "new"){
-			$sql = "SELECT * FROM directory where id = $id AND archived = 0";
+			$sql = "SELECT * FROM directory WHERE id = $id AND archived = 0 AND siteID = '".$_SESSION['siteID']."'";
 			$result = $db->query($sql);
 			while($row = $result->fetch_assoc()){
 				$firstname = htmlspecialchars($row["firstname"], ENT_QUOTES);
@@ -55,8 +56,9 @@
 				$extension = stripslashes($extension);
 				$cellphone = htmlspecialchars($row["cellphone"], ENT_QUOTES);
 				$cellphone = stripslashes(htmlspecialchars(decrypt($cellphone, ""), ENT_QUOTES));
-				$email = htmlspecialchars($row["email"], ENT_QUOTES);
-				$email = stripslashes($email);
+				$email = $row["email"];
+				$emailSearch = mysqli_real_escape_string($db, $email);
+				$email = htmlspecialchars($email, ENT_QUOTES);
 				$ss = htmlspecialchars($row["ss"], ENT_QUOTES);
 				$ss = stripslashes(htmlspecialchars(decrypt($ss, ""), ENT_QUOTES));
 				$dob = htmlspecialchars($row["dob"], ENT_QUOTES);
@@ -167,7 +169,7 @@
 				echo "<div id='workcalendardisplay' style='display:none;'>Calendar for $firstname $lastname</div>";
 
 			}
-			$sql = "SELECT admin FROM users WHERE email = '$email'";
+			$sql = "SELECT admin FROM users WHERE email = '$emailSearch' AND siteID = '".$_SESSION['siteID']."'";
 			$result = $db->query($sql);
 			while($row = $result->fetch_assoc()){
 				$sysadmin = $row["admin"];
@@ -511,33 +513,20 @@
 
 								echo "<div class='row'><div class='col l12'><h5>Permissions</h5></div></div>";
 								echo "<div class='row'>";
-
-									echo "<div class='input-field col l6 s12'>";
-										echo "<select name='role[]' id='role' multiple>";
-										    include "rolelist.php";
-										echo "</select>";
-										echo "<label>Roles</label>";
+									include "rolelist.php";
+								echo "</div>";
+								echo "<div class='row'>";
+									echo "<div class='col l6 s12'>";
+										 if($sysadmin == 1){
+											 echo "<input type='checkbox' id='sysadmin' name='sysadmin' class='filled-in' value='1' checked/>";
+										 }else{
+											 echo "<input type='checkbox' id='sysadmin' name='sysadmin' class='filled-in' value='1'/>";
+										 }
+										 echo "<label for='sysadmin' style='color:#000;'>System Admin Privileges</label>";
 									echo "</div>";
-
-									echo "<div class='input-field col l6 s12'>";
-										echo "<select name='permissions'>";
-										    include "permissionlist.php";
-										echo "</select>";
-										echo "<label>Curriculum</label>";
-									echo "</div>";
-
-									if(admin()){
-										echo "<div class='col l6 s12'>";
-											 if($sysadmin == 1){
-												 echo "<input type='checkbox' id='sysadmin' name='sysadmin' class='filled-in' value='1' checked/>";
-											 }else{
-												 echo "<input type='checkbox' id='sysadmin' name='sysadmin' class='filled-in' value='1'/>";
-											 }
-											 echo "<label for='sysadmin' style='color:#000;'>System Admin Privileges</label>";
-										echo "</div>";
-									}
-
-								 echo "</div>";
+								echo "</div>";
+							}else{
+								echo "<input type='hidden' id='sysadmin' name='sysadmin' value='$sysadmin'/>";
 							}
 							echo "<input type='hidden' name='id' value='$id' id='userid'><br>";
 						}
@@ -585,7 +574,7 @@
 			//the year of the current day.
 			var date = new Date();
 			var y = date.getFullYear();
-			if(date.getMonth() >= 1 && date.getMonth() <= 7){
+			if(date.getMonth() <= 6){
 				y = y - 1;
 			}
 			var defaultDate = '8/1/'+y;
@@ -630,7 +619,7 @@
 			$(".printbutton").click(function(e) {
 				e.preventDefault();
 				var win = window.open('','printwindow');
-				win.document.write('<title>Print Work Calendar</title><link rel="stylesheet" type="text/css" href="https://hcsdoh.org/modules/profile/css/calendar.css">');
+				win.document.write('<title>Print Work Calendar</title><link rel="stylesheet" type="text/css" href="modules/profile/css/calendar.css">');
 				win.document.write($("#workcalendardisplay").html());
 			});
 		});

@@ -16,17 +16,23 @@
     * version 3 along with this program.  If not, see https://www.gnu.org/licenses/agpl-3.0.en.html.
     */
 
-  if(session_id() == ''){ session_start(); }
-  require_once(dirname(__FILE__) . '/../configuration.php');
+  require_once(dirname(__FILE__) . '/abre_session.php');
+  if(session_id() == '') {
+		session_set_save_handler("sess_open", "sess_close", "sess_read", "sess_write", "sess_destroy", "sess_gc");
+    session_start();
+  }
+
+
   require_once('abre_functions.php');
   require_once('abre_parent_google_authentication.php');
+  $portal_root = getConfigPortalRoot();
 
   try{
+
     if(isset($_GET['code'])){
       $client->fetchAccessTokenWithAuthCode($_GET['code']);
       $_SESSION['google_parent_access_token'] = $client->getAccessToken();
       $pagelocation = $portal_root;
-      if(isset($_SESSION["redirecturl"])){ header("Location: $pagelocation/#".$_SESSION["redirecturl"]); }else{ header("Location: $pagelocation"); }
     }
 
     if(isset($_SESSION['google_parent_access_token'])){
@@ -35,13 +41,15 @@
 
     //Get basic user information if they are logged in
     if(isset($_SESSION['google_parent_access_token'])){
+      include "abre_dbconnect.php";
       if(!isset($_SESSION['useremail'])){
         $client->setAccessToken($_SESSION['google_parent_access_token']);
         $userData = $Service_Oauth2->userinfo->get();
-        $userEmail = $userData["email"];
-        $_SESSION['auth_service'] = "microsoft";
+        $userEmail = strtolower($userData["email"]);
+        $_SESSION['auth_service'] = "google";
         $_SESSION['useremail'] = $userEmail;
-        $_SESSION['picture'] = getSiteLogo();
+        $_SESSION['escapedemail'] = mysqli_real_escape_string($db, $userEmail);
+        $_SESSION['picture'] = $userData['picture'];
         $_SESSION['usertype'] = 'parent';
         $_SESSION['displayName'] = $userData['name'];
       }
@@ -49,8 +57,7 @@
 
     if(isset($_SESSION['google_parent_access_token'])){
       if($_SESSION['usertype'] != ""){
-        include "abre_dbconnect.php";
-        if($result = $db->query("SELECT COUNT(*) FROM users_parent WHERE email = '".$_SESSION['useremail']."'")){
+        if($result = $db->query("SELECT COUNT(*) FROM users_parent WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'")){
           $resultrow = $result->fetch_assoc();
           $count = $resultrow["COUNT(*)"];
 
@@ -63,9 +70,9 @@
             }
           }else{
             $stmt = $db->stmt_init();
-            $sql = "INSERT INTO users_parent (email) VALUES (?)";
+            $sql = "INSERT INTO users_parent (email, siteID) VALUES (?, ?)";
             $stmt->prepare($sql);
-            $stmt->bind_param("s", $_SESSION['useremail']);
+            $stmt->bind_param("si", $_SESSION['useremail'], $_SESSION['siteID']);
             $stmt->execute();
             $stmt->close();
             $_SESSION['loggedin'] = "yes";
@@ -75,24 +82,25 @@
       }
     }
   }catch(Exception $x){
-    if(strpos($x->getMessage(), 'Invalid Credentials')){
-      //Destroy the OAuth & PHP session
-      session_destroy();
-      $client->revokeToken();
-
-      //Redirect user
-      header("Location: $portal_root");
+    //Remove cookies and destroy session
+    if(isset($_SERVER['HTTP_COOKIE'])){
+        $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
+        foreach($cookies as $cookie){
+            $parts = explode('=', $cookie);
+            $name = trim($parts[0]);
+            setcookie($name, '', time()-1000);
+            setcookie($name, '', time()-1000, '/');
+        }
     }
-    if(strpos($x->getMessage(), 'Invalid Credentials')){
-      //Destroy the OAuth & PHP session
-      session_destroy();
-      $client->revokeToken();
+    session_destroy();
+    $client->revokeToken();
 
-      //Redirect user
-      header("Location: $portal_root");
-    }
+    //Redirect user
+    header("Location: $portal_root");
+    exit();
   }
 
   header("Location: $portal_root");
+  exit();
 
 ?>

@@ -21,11 +21,11 @@
   require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
   $date = $_POST["year"];
-  $email = $_POST["email"];
+  $email = mysqli_real_escape_string($db, $_POST["email"]);
 
   //if the user is not a student grab their information from the database.
   if($_SESSION['usertype'] != "student"){
-    $sql = "SELECT work_calendar FROM profiles WHERE email = '$email'";
+    $sql = "SELECT work_calendar FROM profiles WHERE email = '$email' AND siteID = '".$_SESSION['siteID']."'";
     $dbreturn = databasequery($sql);
     foreach($dbreturn as $row){
       //grab the work calendar from the entry

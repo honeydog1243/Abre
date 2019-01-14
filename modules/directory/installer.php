@@ -120,6 +120,13 @@
 		$db->close();
 
 		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM directory LIMIT 1")){
+			$sql = "ALTER TABLE `directory` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
+		}
+		$db->close();
+
+		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 		if(!$resultstreams = $db->query("SELECT * FROM directory_discipline LIMIT 1")){
 			$sql = "CREATE TABLE IF NOT EXISTS `directory_discipline` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,`archived` int(11) NOT NULL,
@@ -128,6 +135,13 @@
 				PRIMARY KEY (`id`))
 				ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=15;";
 			if ($db->multi_query($sql) === TRUE) { }
+		}
+		$db->close();
+
+		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM directory_discipline LIMIT 1")){
+			$sql = "ALTER TABLE `directory_discipline` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
 		}
 		$db->close();
 
@@ -157,9 +171,16 @@
 		}
 		$db->close();
 
+		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+		if(!$db->query("SELECT siteID FROM directory_settings LIMIT 1")){
+			$sql = "ALTER TABLE `directory_settings` ADD `siteID` int(11) NOT NULL;";
+			$db->multi_query($sql);
+		}
+		$db->close();
+
 		//Mark app as installed
 		require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-		$sql = "UPDATE apps_abre SET installed = 1 WHERE app = 'directory'";
+		$sql = "UPDATE apps_abre SET installed = 1 WHERE app = 'directory' AND siteID = '".$_SESSION['siteID']."'";
 		$db->multi_query($sql);
 		$db->close();
 	}

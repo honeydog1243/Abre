@@ -17,26 +17,28 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once('permissions.php');
 
-	if(CONSTANT('SITE_MODE') == "DEMO"){
+	$siteColor = getSiteColor();
+
+	if(getConfigSiteMode() == "DEMO"){
 		echo "<div style='padding:30px; text-align:center; width:100%;'>";
 			echo "<div class='row'>";
 				echo "<span style='font-size: 22px; font-weight:700'>Learn more about the Directory App!</span>";
 			echo "</div>";
 			echo "<div class='row'>";
-				echo "<p style='font-size:16px; margin:20px 0 0 0;'>For more information about the Abre Platform visit <a href='https://www.abre.io/' style='color:".getSiteColor().";' target='_blank'>our website</p>";
+				echo "<p style='font-size:16px; margin:20px 0 0 0;'>For more information about the Abre Platform visit <a href='https://www.abre.io/' style='color:".$siteColor.";' target='_blank'>our website</p>";
 			echo "</div>";
 		echo "</div>";
 	}else{
 		//Show the Search and Last 10 Modified Users
 		if($pageaccess == 1 or $_SESSION['usertype'] == "staff"){
 
-			$sql = "SELECT COUNT(*) FROM directory WHERE archived = 0";
+			$sql = "SELECT COUNT(*) FROM directory WHERE archived = 0 AND siteID = '".$_SESSION['siteID']."'";
 			$dbreturn = $db->query($sql);
 			$resultrow = $dbreturn->fetch_assoc();
 			$num_users = $resultrow["COUNT(*)"];
@@ -47,7 +49,7 @@
 				echo "<div class='page_container'>";
 					echo "<div class='row'>";
 						echo "<div class='col l12 m12 s12' style='padding:0'>";
-							echo "<nav style='background-color:"; echo getSiteColor(); echo ";'>";
+							echo "<nav style='background-color:"; echo $siteColor; echo ";'>";
 									echo "<div class='nav-wrapper'>";
 										echo "<form id='form-search' method='post' action='modules/directory/searchresults.php'>";
 											echo "<div class='input-field'>";

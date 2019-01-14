@@ -17,7 +17,7 @@
     */
 
 	//Check to make sure no configuration file exists
-	if (!file_exists('configuration.php')){
+	if (!file_exists('configuration.php') && getenv("USE_GOOGLE_CLOUD") != "true"){
 		//Load header
 		require_once('core/abre_header.php');
 		require_once('core/abre_version.php');

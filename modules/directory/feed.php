@@ -17,16 +17,16 @@
     */
 
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-	require(dirname(__FILE__) . '/../../core/abre_functions.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	$returnarray = array();
 
 	$building = htmlspecialchars($_GET["building"]);
 	$building = preg_replace("/[^ \w]+/", "", $building);
 	if($building == "All"){
-		$sql = "SELECT firstname, lastname, email, title, picture FROM directory WHERE archived = 0 ORDER BY lastname";
+		$sql = "SELECT firstname, lastname, email, title, picture FROM directory WHERE archived = 0 AND siteID = '".$_SESSION['siteID']."' ORDER BY lastname";
 	}else{
-		$sql = "SELECT firstname, lastname, email, title, picture FROM directory WHERE location = '$building' and archived = 0 ORDER BY lastname";
+		$sql = "SELECT firstname, lastname, email, title, picture FROM directory WHERE location = '$building' AND archived = 0 AND siteID = '".$_SESSION['siteID']."' ORDER BY lastname";
 	}
 	$result = $db->query($sql);
 	$numberofrows = $result->num_rows;
@@ -35,7 +35,7 @@
 		$firstname = stripslashes($firstname);
 		$lastname = htmlspecialchars($row["lastname"], ENT_QUOTES);
 		$lastname = stripslashes($lastname);
-		$email = htmlspecialchars($row["email"], ENT_QUOTES);
+		$email = $row["email"];
 		$email = stripslashes($email);
 		$title = htmlspecialchars($row["title"], ENT_QUOTES);
 		$title = stripslashes($title);

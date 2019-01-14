@@ -18,24 +18,24 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	if(admin() || isStreamHeadlineAdministrator()){
     $headlineid = $_GET["id"];
 
     $stmt = $db->stmt_init();
-    $sql = "DELETE FROM headline_responses WHERE headline_id = ?";
+    $sql = "DELETE FROM headline_responses WHERE headline_id = ? AND siteID = ?";
     $stmt->prepare($sql);
-    $stmt->bind_param("i", $headlineid);
+    $stmt->bind_param("ii", $headlineid, $_SESSION['siteID']);
     $stmt->execute();
     $stmt->close();
 
 		//Delete the headline
 		$stmt = $db->stmt_init();
-		$sql = "DELETE FROM headlines WHERE id = ?";
+		$sql = "DELETE FROM headlines WHERE id = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("i", $headlineid);
+		$stmt->bind_param("ii", $headlineid, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

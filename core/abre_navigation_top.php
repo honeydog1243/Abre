@@ -24,7 +24,7 @@
 	<!--Display top navigation-->
 	<header class='mdl-layout__header mdl-color-text--white' style='background-color: <?php echo getSiteColor(); ?>'>
 		<div class='mdl-layout__header-row'>
-			<span class='mdl-layout-title'><div id='titletext' class='truncate'></div></span>
+			<span class='mdl-layout-title' style="max-width: 75%;"><div id='titletext' class='truncate'></div></span>
 			<div class='mdl-layout-spacer'></div>
 				<?php
 					if(!isset($_GET["dash"])){

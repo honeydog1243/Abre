@@ -18,7 +18,7 @@
 
 	//Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
-	require_once(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
+	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
   $headlineInformationJSON = $_POST['json'];
@@ -36,9 +36,9 @@
 
 	//Insert the headline_response
 	$stmt = $db->stmt_init();
-	$sql = "INSERT INTO headline_responses (headline_id, email) VALUES (?, ?)";
+	$sql = "INSERT INTO headline_responses (headline_id, email, siteID) VALUES (?, ?, ?)";
 	$stmt->prepare($sql);
-	$stmt->bind_param("is", $headlineID, $submitter);
+	$stmt->bind_param("isi", $headlineID, $submitter, $_SESSION['siteID']);
 	$stmt->execute();
   if($stmt->error != ""){
     $response = array("status" => "Error", "message" => "There was a problem saving your headline response!");

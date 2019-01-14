@@ -18,6 +18,7 @@
 
     //Required configuration files
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
   if($_SESSION['usertype'] == "staff"){
 
@@ -31,7 +32,7 @@
 				$('#content_holder').load( 'modules/directory/directory.php', function() { init_page(); });
 				$( '#modal_holder' ).load( 'modules/".basename(__DIR__)."/modals.php' );";
 
-				if(CONSTANT('SITE_MODE') != "DEMO"){
+				if(getConfigSiteMode() != "DEMO"){
 					echo "$( '#navigation_top' ).show();
 					$( '#navigation_top' ).load( 'modules/directory/menu.php', function() {
 						$( '#navigation_top' ).show();

@@ -17,7 +17,7 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
@@ -47,9 +47,9 @@
 		rrmdir(realpath(dirname(__FILE__))."/../$module");
 
 		$stmt = $db->stmt_init();
-		$sql = "DELETE FROM apps_abre WHERE app = ?";
+		$sql = "DELETE FROM apps_abre WHERE app = ? AND siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("s", $module);
+		$stmt->bind_param("si", $module, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
@@ -30,10 +30,10 @@
 
 		fputcsv($output, array('Student ID','Building','First Name','Last Name','Grade','Token'));
 		include "../../core/abre_dbconnect.php";
-		$rows = mysqli_query($db, 'SELECT studentId, token FROM student_tokens');
+		$rows = mysqli_query($db, "SELECT studentId, token FROM student_tokens WHERE siteID = '".$_SESSION['siteID']."'");
 
 		while($row = mysqli_fetch_assoc($rows)) {
-			$sql = mysqli_query($db, "SELECT FirstName, LastName, SchoolName, CurrentGrade FROM Abre_Students WHERE StudentId = '".$row['studentId']."'");
+			$sql = mysqli_query($db, "SELECT FirstName, LastName, SchoolName, CurrentGrade FROM Abre_Students WHERE StudentId = '".$row['studentId']."' AND siteID = '".$_SESSION['siteID']."'");
 			$row2 = mysqli_fetch_assoc($sql);
 
 			$studentid = htmlspecialchars($row["studentId"], ENT_QUOTES);

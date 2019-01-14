@@ -17,7 +17,7 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
@@ -30,19 +30,19 @@
 
 		//Check if record exists
 		$apprecordexists = 0;
-		$sqlcountcheck = "SELECT COUNT(*) FROM apps_abre WHERE app='$uniqueappname' LIMIT 1";
+		$sqlcountcheck = "SELECT COUNT(*) FROM apps_abre WHERE app='$uniqueappname' AND siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$sqlcountcheckresult = $db->query($sqlcountcheck);
 		$sqlcountcheckreturn = $sqlcountcheckresult->fetch_assoc();
 		$apprecordexists = $sqlcountcheckreturn["COUNT(*)"];
 
 		//If app exists, change active state
 		if($apprecordexists != 0){
-			mysqli_query($db, "UPDATE apps_abre SET active='$activestate' WHERE app='$uniqueappname'") or die (mysqli_error($db));
+			mysqli_query($db, "UPDATE apps_abre SET active='$activestate' WHERE app='$uniqueappname' AND siteID = '".$_SESSION['siteID']."'") or die (mysqli_error($db));
 
 		}else{
 
 			$stmt = $db->stmt_init();
-			$sql = "INSERT INTO apps_abre (app, active) VALUES ('$uniqueappname', '0');";
+			$sql = "INSERT INTO apps_abre (app, active, siteID) VALUES ('$uniqueappname', '0', '".$_SESSION['siteID']."');";
 			$stmt->prepare($sql);
 			$stmt->execute();
 			$stmt->close();

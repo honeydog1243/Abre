@@ -16,32 +16,54 @@
     * version 3 along with this program.  If not, see https://www.gnu.org/licenses/agpl-3.0.en.html.
     */
 
-  if(session_id() == ''){ session_start(); }
-  require_once(dirname(__FILE__) . '/../configuration.php');
+  require_once(dirname(__FILE__) . '/abre_session.php');
+  if(session_id() == '') {
+    session_set_save_handler("sess_open", "sess_close", "sess_read", "sess_write", "sess_destroy", "sess_gc");
+    session_start();
+  }
   require_once('abre_functions.php');
+  $portal_root = getConfigPortalRoot();
 
   if(!isset($_POST['code'])){
     $clientId = getSiteMicrosoftClientId();
-    $url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=".$clientId."&response_type=code&redirect_uri=".$portal_root."/core/abre_microsoft_login.php&response_mode=form_post&scope=openid%20profile%20offline_access%20user.read%20calendars.read%20files.read%20mail.read&state=12345";
+    if(isset($_SESSION['usertype']) && $_SESSION['usertype'] == 'parent'){
+      $url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=".$clientId."&response_type=code&redirect_uri=".$portal_root."/core/abre_microsoft_login.php&response_mode=form_post&scope=openid%20profile&state=12345";
+    }else{
+      $url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=".$clientId."&response_type=code&redirect_uri=".$portal_root."/core/abre_microsoft_login.php&response_mode=form_post&scope=openid%20profile%20offline_access%20user.read%20calendars.read%20files.read%20mail.read&state=12345";
+    }
     header("Location: $url");
+    exit();
   }else{
-    if(!isset($_SESSION['usertype'])){ $_SESSION['usertype'] = ""; }
+    if(!isset($_SESSION['usertype'])){
+      $_SESSION['usertype'] = "";
+    }
 
     //Load configuration settings
     $studentdomain = getSiteStudentDomain();
     $studentdomainrequired = getSiteStudentDomainRequired();
 
-    $cookie_name = constant("PORTAL_COOKIE_NAME");
-    $site_domain = constant("SITE_GAFE_DOMAIN");
+    $cookie_name = getConfigPortalCookieKey();
+    $site_domain = getConfigSiteGafeDomain();
 
-    $fields = array(
-      'client_id' => urlencode(getSiteMicrosoftClientId()),
-      'redirect_uri' => urlencode($portal_root . '/core/abre_microsoft_login.php'),
-      'grant_type' => urlencode('authorization_code'),
-      'client_secret' => urlencode(getSiteMicrosoftClientSecret()),
-      'code' => urlencode($_POST['code']),
-      'scope' => urlencode('openid profile user.read mail.read calendars.read files.read offline_access')
-    );
+    if($_SESSION['usertype'] == "parent"){
+      $fields = array(
+        'client_id' => urlencode(getSiteMicrosoftClientId()),
+        'redirect_uri' => urlencode($portal_root . '/core/abre_microsoft_login.php'),
+        'grant_type' => urlencode('authorization_code'),
+        'client_secret' => urlencode(getSiteMicrosoftClientSecret()),
+        'code' => urlencode($_POST['code']),
+        'scope' => urlencode('openid profile')
+      );
+    }else{
+      $fields = array(
+        'client_id' => urlencode(getSiteMicrosoftClientId()),
+        'redirect_uri' => urlencode($portal_root . '/core/abre_microsoft_login.php'),
+        'grant_type' => urlencode('authorization_code'),
+        'client_secret' => urlencode(getSiteMicrosoftClientSecret()),
+        'code' => urlencode($_POST['code']),
+        'scope' => urlencode('openid profile user.read mail.read calendars.read files.read offline_access')
+      );
+    }
 
     //url-ify the data for the POST
     $fields_string = "";
@@ -71,20 +93,16 @@
     $infoString = base64_decode($info);
     $infoObject = json_decode($infoString);
     $_SESSION['access_token'] = $accessTokenArray;
+    $_SESSION['microsoft_access_token'] = $accessTokenArray;
     $_SESSION['auth_service'] = "microsoft";
-    $pagelocation = $portal_root;
-
-    if(isset($_SESSION["redirecturl"])){
-      header("Location: $pagelocation/#".$_SESSION["redirecturl"]);
-    }else{
-      header("Location: $pagelocation");
-    }
 
     try{
       if(isset($_SESSION['access_token'])){
+        include "abre_dbconnect.php";
         if(!isset($_SESSION['useremail'])){
           $_SESSION['auth_service'] = "microsoft";
-          $_SESSION['useremail'] = $infoObject->preferred_username;
+          $_SESSION['useremail'] = strtolower($infoObject->preferred_username);
+          $_SESSION['escapedemail'] = mysqli_real_escape_string($db, $infoObject->preferred_username);
           $_SESSION['displayName'] = $infoObject->name;
           if($_SESSION["usertype"] != 'parent' || !isset($_SESSION["usertype"])){
 
@@ -122,7 +140,7 @@
         if($_SESSION['usertype'] != ""){
           include "abre_dbconnect.php";
           if($_SESSION['usertype'] == "parent"){
-            if($result = $db->query("SELECT COUNT(*) FROM users_parent WHERE email = '".$_SESSION['useremail']."'")){
+            if($result = $db->query("SELECT COUNT(*) FROM users_parent WHERE email = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'")){
               $resultrow = $result->fetch_assoc();
               $count = $resultrow["COUNT(*)"];
 
@@ -135,9 +153,9 @@
                 }
               }else{
                 $stmt = $db->stmt_init();
-                $sql = "INSERT INTO users_parent (email) VALUES (?)";
+                $sql = "INSERT INTO users_parent (email, siteID) VALUES (?, ?)";
                 $stmt->prepare($sql);
-                $stmt->bind_param("s", $_SESSION['useremail']);
+                $stmt->bind_param("si", $_SESSION['useremail'], $_SESSION['siteID']);
                 $stmt->execute();
                 $stmt->close();
                 $_SESSION['loggedin'] = "yes";
@@ -145,7 +163,7 @@
             }
             $db->close();
           }else{
-            if($result = $db->query("SELECT COUNT(*) FROM users WHERE email = '".$_SESSION['useremail']."' AND `refresh_token` LIKE '%refresh_token%' AND `auth_service` = '".$_SESSION['auth_service']."'")){
+            if($result = $db->query("SELECT COUNT(*) FROM users WHERE email = '".$_SESSION['escapedemail']."' AND `refresh_token` LIKE '%refresh_token%' AND `auth_service` = '".$_SESSION['auth_service']."' AND siteID = '".$_SESSION['siteID']."'")){
               $resultrow = $result->fetch_assoc();
               $count = $resultrow["COUNT(*)"];
 
@@ -159,23 +177,23 @@
                   if($refreshTokenKey != ""){
                     if(strpos($refreshTokenKey, 'refresh_token') !== false){
                       $stmt = $db->stmt_init();
-                      $sql = "UPDATE users SET refresh_token = ? WHERE email = ? AND auth_service = ?";
+                      $sql = "UPDATE users SET refresh_token = ? WHERE email = ? AND auth_service = ? AND siteID = ?";
                       $stmt->prepare($sql);
-                      $stmt->bind_param("sss", $refreshTokenKey, $_SESSION['useremail'], $_SESSION['auth_service']);
+                      $stmt->bind_param("sssi", $refreshTokenKey, $_SESSION['useremail'], $_SESSION['auth_service'], $_SESSION['siteID']);
                       $stmt->execute();
                       $stmt->close();
                     }
                   }
 
                   //Get the token from the database
-                  $getRefreshToken = mysqli_fetch_assoc(mysqli_query($db, "SELECT refresh_token FROM users WHERE email = '".$_SESSION['useremail']."' AND auth_service = '".$_SESSION['auth_service']."'"));
+                  $getRefreshToken = mysqli_fetch_assoc(mysqli_query($db, "SELECT refresh_token FROM users WHERE email = '".$_SESSION['escapedemail']."' AND auth_service = '".$_SESSION['auth_service']."' AND siteID = '".$_SESSION['siteID']."'"));
                   $refreshtoken = $getRefreshToken['refresh_token'];
                   $refreshtoken = json_decode($refreshtoken, true);
                   $_SESSION['access_token'] = $refreshtoken;
 
                   //Set cookie for 7 days
                   $sha1useremail = sha1($_SESSION['useremail']);
-                  $cookiekey = constant("PORTAL_COOKIE_KEY");
+                  $cookiekey = getConfigPortalCookieKey();
                   $hash = sha1($cookiekey);
                   $storetoken = $sha1useremail.$hash;
                   setcookie($cookie_name, $storetoken, time()+86400 * 7, '/', '', true, true);
@@ -186,9 +204,9 @@
               }else{
 
                 $stmt = $db->stmt_init();
-                $sql = "DELETE FROM users WHERE email = ? AND auth_service = ?";
+                $sql = "DELETE FROM users WHERE email = ? AND auth_service = ? AND siteID = ?";
                 $stmt->prepare($sql);
-                $stmt->bind_param("ss", $_SESSION['useremail'], $_SESSION['auth_service']);
+                $stmt->bind_param("ssi", $_SESSION['useremail'], $_SESSION['auth_service'], $_SESSION['siteID']);
                 $stmt->execute();
                 $stmt->close();
 
@@ -197,14 +215,14 @@
                 //Insert Token if contains refresh_token, otherwise, force consent
                 if(strpos($getTokenKeyOnly, 'refresh_token') !== false){
                   $sha1useremail = sha1($_SESSION['useremail']);
-                  $cookiekey = constant("PORTAL_COOKIE_KEY");
+                  $cookiekey = getConfigPortalCookieKey();
                   $hash = sha1($cookiekey);
                   $storetoken = $sha1useremail.$hash;
 
                   $stmt = $db->stmt_init();
-                  $sql = "INSERT INTO users (email, refresh_token, cookie_token, auth_service) VALUES (?, ?, ?, ?)";
+                  $sql = "INSERT INTO users (email, refresh_token, cookie_token, auth_service, siteID) VALUES (?, ?, ?, ?, ?)";
                   $stmt->prepare($sql);
-                  $stmt->bind_param("ssss", $_SESSION['useremail'], $getTokenKeyOnly, $storetoken, $_SESSION['auth_service']);
+                  $stmt->bind_param("ssssi", $_SESSION['useremail'], $getTokenKeyOnly, $storetoken, $_SESSION['auth_service'], $_SESSION['siteID']);
                   $stmt->execute();
                   $stmt->close();
 
@@ -222,6 +240,7 @@
                     }
                   }
                   header("Location: $portal_root");
+                  exit();
                 }
               }
             }
@@ -229,31 +248,40 @@
         }else{
           $_SESSION['usertype'] = NULL;
           $_SESSION['useremail'] = NULL;
-          header("Location: $portal_root?signout");
+          header("Location: /core/abre_signout.php");
+          exit();
         }
       }else{
         $_SESSION['usertype'] = NULL;
         $_SESSION['useremail'] = NULL;
-        header("Location: $portal_root?signout");
+        header("Location: /core/abre_signout.php");
+        exit();
       }
     }catch(Exception $x){
-      if(strpos($x->getMessage(), 'Invalid Credentials')){
-        session_destroy();
-
-        //Redirect user
-        header("Location: $portal_root");
+      //Remove cookies and destroy session
+      if(isset($_SERVER['HTTP_COOKIE'])){
+          $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
+          foreach($cookies as $cookie){
+              $parts = explode('=', $cookie);
+              $name = trim($parts[0]);
+              setcookie($name, '', time()-1000);
+              setcookie($name, '', time()-1000, '/');
+          }
       }
-      if(strpos($x->getMessage(), 'Invalid Credentials')){
-        //Destroy the OAuth & PHP session
-        session_destroy();
+      session_destroy();
 
-        //Redirect user
-        header("Location: $portal_root");
-      }
+      //Redirect user
+      header("Location: $portal_root");
+      exit();
     }
 
-    header("Location: $portal_root");
-
+    //Used for assessments and forms (if Chris doesn't remember what its for)
+    if(isset($_SESSION["redirecturl"])){
+      $redirect = $_SESSION['redirecturl'];
+      header("Location: $portal_root/#".$redirect);
+    }else{
+      header("Location: $portal_root");
+    }
+    exit();
   }
-
 ?>

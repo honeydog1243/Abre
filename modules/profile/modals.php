@@ -22,6 +22,7 @@
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	$schoolResults = getAllSchoolCodesAndNames();
+	$siteColor = getSiteColor();
 ?>
 
 	<!--Work Schedule-->
@@ -33,7 +34,7 @@
 					</div>
 					<div class='col l2 s12' style='float:right;'>
 						<select id='calendaryear'>
-							<option value='2016' selected>2016-2017 School Year</option>
+							<option value='2016'>2016-2017 School Year</option>
 							<option value='2017'>2017-2018 School Year</option>
 							<option value='2018'>2018-2019 School Year</option>
 							<option value='2019'>2019-2020 School Year</option>
@@ -51,8 +52,8 @@
 				</div>
 	    </div>
 		<div class="modal-footer">
-			<button class="modal-close waves-effect btn-flat white-text" style='margin-left:5px; background-color: <?php echo getSiteColor(); ?>'>Close</button>
-			<button class="printbutton waves-effect btn-flat white-text" style='background-color: <?php echo getSiteColor(); ?>'>Print</button>
+			<button class="modal-close waves-effect btn-flat white-text" style='margin-left:5px; background-color: <?php echo $siteColor; ?>'>Close</button>
+			<button class="printbutton waves-effect btn-flat white-text" style='background-color: <?php echo $siteColor; ?>'>Print</button>
 			<div id="selecteddays" style='margin:12px 0 0 20px; font-weight:500; font-size:16px;'></div>
 	  </div>
 	</div>
@@ -64,7 +65,7 @@
 
 	<div id='streameditor' class='modal modal-fixed-footer modal-mobile-full'>
 		<div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Stream Editor</span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -79,14 +80,14 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<a class='modal-action waves-effect btn-flat white-text modal-addeditstream' href='#addeditstream' data-streamtitle='Add New Stream' style='background-color: <?php echo getSiteColor(); ?>'>Add</a>
+			<a class='modal-action waves-effect btn-flat white-text modal-addeditstream' href='#addeditstream' data-streamtitle='Add New Stream' style='background-color: <?php echo $siteColor; ?>'>Add</a>
 		</div>
 	</div>
 
 	<div id='addeditstream' class='modal modal-fixed-footer modal-mobile-full' style="width: 90%">
 		<form id='addeditstreamform' method="post" action='#'>
 		<div class='modal-content' id="viewstreammodal" style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" id='editstreammodaltitle' style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -106,7 +107,7 @@
 				<div class="row">
 					<div class='col s12' style="padding-bottom: 13px;">
 						<label for="stream_color">Select a Color</label><br>
-						<input type='text' id="stream_color"><span class='pointer' id='removeColor' style='padding-left:5px; display:none'><a style='color:<?php echo getSiteColor() ?>;'>remove color</a></span>
+						<input type='text' id="stream_color"><span class='pointer' id='removeColor' style='padding-left:5px; display:none'><a style='color:<?php echo $siteColor; ?>;'>remove color</a></span>
 					</div>
 				</div>
 				<div class='row'>
@@ -157,15 +158,15 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveupdatestream' style='background-color: <?php echo getSiteColor(); ?>;'>Save</button>
-			<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo getSiteColor(); ?>; margin-right:5px;'>Cancel</a>
+			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveupdatestream' style='background-color: <?php echo $siteColor; ?>;'>Save</button>
+			<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo $siteColor; ?>; margin-right:5px;'>Cancel</a>
 		</div>
 		</form>
 	</div>
 
 	<div id='headlineseditor' class='modal modal-fixed-footer modal-mobile-full'>
 		<div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;">Headlines Editor</span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -180,7 +181,7 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<a class='modal-action waves-effect btn-flat white-text modal-addeditheadline' href='#addeditheadline' data-streamtitle='Add New Stream' style='background-color: <?php echo getSiteColor(); ?>'>Add</a>
+			<a class='modal-action waves-effect btn-flat white-text modal-addeditheadline' href='#addeditheadline' style='background-color: <?php echo $siteColor; ?>'>Add</a>
 		</div>
 	</div>
 
@@ -188,7 +189,7 @@
 	<div id='addeditheadline' class='modal modal-fixed-footer modal-mobile-full'>
 		<form id='addeditheadlineform' method="post" action='#'>
 		<div class='modal-content' style="padding: 0px !important;">
-			<div class="row" style='background-color: <?php echo getSiteColor(); ?>; padding: 24px;'>
+			<div class="row" style='background-color: <?php echo $siteColor; ?>; padding: 24px;'>
 				<div class='col s11'><span class="truncate" id='addeditheadlinetitle' style="color: #fff; font-weight: 500; font-size: 24px; line-height: 26px;"></span></div>
 				<div class='col s1 right-align'><a class="modal-close"><i class='material-icons' style='color: #fff;'>clear</i></a></div>
 			</div>
@@ -223,7 +224,7 @@
 						<select id="headlineForm" name="headlinForm">
 							<option value="" disabled selected>Attach a Form</option>
 							<?php if(isAppActive("Abre-Forms")){
-								$sql = "SELECT ID, Name FROM forms WHERE Owner = '".$_SESSION['useremail']."'";
+								$sql = "SELECT ID, Name FROM forms WHERE Owner = '".$_SESSION['escapedemail']."' AND siteID = '".$_SESSION['siteID']."'";
 								$result = $db->query($sql);
 								while($value = $result->fetch_assoc()){
 									$formID = $value['ID'];
@@ -278,8 +279,8 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveheadline' style='background-color: <?php echo getSiteColor(); ?>;'>Save</button>
-			<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo getSiteColor(); ?>; margin-right:5px;'>Cancel</a>
+			<button type="submit" class='modal-action waves-effect btn-flat white-text' id='saveheadline' style='background-color: <?php echo $siteColor; ?>;'>Save</button>
+			<a class='modal-action modal-close waves-effect btn-flat white-text' style='background-color: <?php echo $siteColor; ?>; margin-right:5px;'>Cancel</a>
 		</div>
 		</form>
 	</div>
@@ -339,8 +340,6 @@
 				$("#streamStudentRestrictionsDiv").hide();
 			}
 		});
-
-	  $('select').material_select();
 
 	  <?php
 		if(admin() || isStreamHeadlineAdministrator()){
@@ -529,9 +528,14 @@
 		?>
 
 		//grabs the selected date from the drop down options in the modal.
-		var y = $('#calendaryear').val();
+		var date = new Date();
+		var y = date.getFullYear();
+		if(date.getMonth() <= 6){
+			y = y - 1;
+		}
 		var defaultDate = '8/1/'+y;
 		var currYear = y;
+		$("#calendaryear").val(String(y));
 		var email = "<?php echo $_SESSION['useremail'] ?>";
 
 		//makes a post request to get the already chosen dates from the database.
@@ -619,6 +623,8 @@
 				currYear = y;
 			}
 		});
+
+		$('select').material_select();
 
 	});
 </script>

@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
@@ -51,7 +51,7 @@
 		}
 
 		//Get Existing JSON string
-		$sql = "SELECT authentication FROM settings LIMIT 1";
+		$sql = "SELECT authentication FROM settings WHERE siteID = '".$_SESSION['siteID']."' LIMIT 1";
 		$result = $db->query($sql);
 		$row = $result->fetch_assoc();
 		$json = $row["authentication"];
@@ -65,9 +65,9 @@
 		$updateJson = json_encode($jsonDecoded);
 
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE settings SET authentication = ?";
+		$sql = "UPDATE settings SET authentication = ? WHERE siteID = ?";
 		$stmt->prepare($sql);
-		$stmt->bind_param("s", $updateJson);
+		$stmt->bind_param("si", $updateJson, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

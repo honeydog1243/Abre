@@ -17,15 +17,17 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require('permissions.php');
 	require_once('functions.php');
 	require_once('../../core/abre_functions.php');
+	$portal_private_root = getConfigPortalPrivateRoot();
+	$portal_path_root = getConfigPortalPathRoot();
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
@@ -151,14 +153,54 @@
 		$licensetermid6 = $_POST["licensetermid6"];
 		$licensetermid6 = encrypt($licensetermid6, "");
 
-		$permissions = $_POST["permissions"];
-		$permissions = encrypt($permissions, "");
+		$permissions = encrypt("", "");
+
 		isset($_POST["sysadmin"]) ? $sysadmin = $_POST["sysadmin"] : $sysadmin = 0;
 
-		isset($_POST["role"]) ? $role = $_POST["role"] : $role = "";
-		if($role != ""){
-			$role = implode (", ", $_POST["role"]);
+		$role = array();
+
+		if(isset($_POST['AssessmentAdministrator'])){
+			array_push($role, $_POST['AssessmentAdministrator']);
 		}
+		if(isset($_POST['ConductAdministrator'])){
+			array_push($role, $_POST['ConductAdministrator']);
+		}
+		if(isset($_POST['ConductVerificationMonitor'])){
+			array_push($role, $_POST['ConductVerificationMonitor']);
+		}
+		if(isset($_POST['CurriculumAdministrator'])){
+			array_push($role, $_POST['CurriculumAdministrator']);
+		}
+		if(isset($_POST['DirectoryAdministrator'])){
+			array_push($role, $_POST['DirectoryAdministrator']);
+		}
+		if(isset($_POST['DirectoryAdvisor'])){
+			array_push($role, $_POST['DirectoryAdvisor']);
+		}
+		if(isset($_POST['DirectorySupervisor'])){
+			array_push($role, $_POST['DirectorySupervisor']);
+		}
+		if(isset($_POST['BuildingPlansAdministrator'])){
+			array_push($role, $_POST['BuildingPlansAdministrator']);
+		}
+		if(isset($_POST['DistrictPlansAdministrator'])){
+			array_push($role, $_POST['DistrictPlansAdministrator']);
+		}
+		if(isset($_POST['FormsAdministrator'])){
+			array_push($role, $_POST['FormsAdministrator']);
+		}
+		if(isset($_POST['StreamandHeadlineAdministrator'])){
+			array_push($role, $_POST['StreamandHeadlineAdministrator']);
+		}
+		if(isset($_POST['student-administrator'])){
+			array_push($role, $_POST['student-administrator']);
+		}
+		if(!empty($role)){
+			$role = implode(", ", $role);
+		}else{
+			$role = "";
+		}
+
 		if(strpos($role, 'Directory Administrator') !== false){
 			$superadmin = 1;
 		}else{
@@ -201,12 +243,12 @@
 				// saving file to uploads folder
 				$picturefilename = $newNamePrefix . $_FILES['picture']['name'];
 				if ($cloudsetting=="true") {
-					$manipulator->saveGC("private_html/directory/images/employees/". $picturefilename);				
+					$manipulator->saveGC("private_html/directory/images/employees/". $picturefilename);
 				}
 				else {
-					$manipulator->save($portal_path_root."/../$portal_private_root/directory/images/employees/" . $picturefilename);				
+					$manipulator->save($portal_path_root."/../$portal_private_root/directory/images/employees/" . $picturefilename);
 				}
-			}	
+			}
 		}else{
 			$picturefilename = $currentpicture;
 		}
@@ -224,10 +266,10 @@
 					$cloud_directory = "private_html/directory/discipline/" . $disfilename;
 					if ($cloudsetting=="true") {
 						$storage = new StorageClient([
-							'projectId' => constant("GC_PROJECT")
-						]);	
-						$bucket = $storage->bucket(constant("GC_BUCKET"));				
-				
+							'projectId' => getenv("GC_PROJECT")
+						]);
+						$bucket = $storage->bucket(getenv("GC_BUCKET"));
+
 						$options = [
 							'resumable' => true,
 							'name' => $cloud_directory,
@@ -238,20 +280,20 @@
 						$upload = $bucket->upload(
 							fopen($_FILES['discipline']['tmp_name'], "r"),
 							$options
-						);					
+						);
 					}
 					else {
 						if(!move_uploaded_file($_FILES['discipline']['tmp_name'], $portal_path_root . "/../$portal_private_root/directory/discipline/" . $disfilename)){
 							echo "The file was not uploaded";
-						}	
+						}
 					}
 
 					//Add Record to Database
 					include "../../core/abre_dbconnect.php";
 					$stmtdiscipline = $db->stmt_init();
-					$sqldiscipline = "INSERT INTO directory_discipline (UserID,Filename) VALUES (?, ?);";
+					$sqldiscipline = "INSERT INTO directory_discipline (UserID,Filename, siteID) VALUES (?, ?, ?);";
 					$stmtdiscipline->prepare($sqldiscipline);
-					$stmtdiscipline->bind_param("is", $id, $disfilename);
+					$stmtdiscipline->bind_param("isi", $id, $disfilename, $_SESSION['siteID']);
 					$stmtdiscipline->execute();
 					$stmtdiscipline->store_result();
 					$stmtdiscipline->close();
@@ -263,9 +305,9 @@
 		if($id != ""){
 			include "../../core/abre_dbconnect.php";
 			$stmt = $db->stmt_init();
-			$sql = "UPDATE directory SET updatedtime = now(), superadmin = ?, admin = ?, picture = ?, firstname = ?, middlename = ?, lastname = ?, address = ?, city = ?, state = ?, zip = ?, phone = ?, extension = ?, cellphone = ?, email = ?, ss = ?, dob = ?, gender = ?, ethnicity = ?, title = ?, contract = ?, classification = ?, location = ?, grade = ?, subject = ?, doh = ?, senioritydate = ?, effectivedate = ?, rategroup = ?, step = ?, educationlevel = ?, salary = ?, hours = ?, probationreportdate = ?, statebackgroundcheck = ?, federalbackgroundcheck = ?, stateeducatorid = ?, licensetype1 = ?, licenseissuedate1 = ?, licenseexpirationdate1 = ?, licenseterm1 = ?, licensetype2 = ?, licenseissuedate2 = ?, licenseexpirationdate2 = ?, licenseterm2 = ?, licensetype3 = ?, licenseissuedate3 = ?, licenseexpirationdate3 = ?, licenseterm3 = ?, licensetype4 = ?, licenseissuedate4 = ?, licenseexpirationdate4 = ?, licenseterm4 = ?, licensetype5 = ?, licenseissuedate5 = ?, licenseexpirationdate5 = ?, licenseterm5 = ?, licensetype6 = ?, licenseissuedate6 = ?, licenseexpirationdate6 = ?, licenseterm6 = ?, permissions = ?, role = ?, contractdays = ? WHERE id = ?";
+			$sql = "UPDATE directory SET updatedtime = now(), superadmin = ?, admin = ?, picture = ?, firstname = ?, middlename = ?, lastname = ?, address = ?, city = ?, state = ?, zip = ?, phone = ?, extension = ?, cellphone = ?, email = ?, ss = ?, dob = ?, gender = ?, ethnicity = ?, title = ?, contract = ?, classification = ?, location = ?, grade = ?, subject = ?, doh = ?, senioritydate = ?, effectivedate = ?, rategroup = ?, step = ?, educationlevel = ?, salary = ?, hours = ?, probationreportdate = ?, statebackgroundcheck = ?, federalbackgroundcheck = ?, stateeducatorid = ?, licensetype1 = ?, licenseissuedate1 = ?, licenseexpirationdate1 = ?, licenseterm1 = ?, licensetype2 = ?, licenseissuedate2 = ?, licenseexpirationdate2 = ?, licenseterm2 = ?, licensetype3 = ?, licenseissuedate3 = ?, licenseexpirationdate3 = ?, licenseterm3 = ?, licensetype4 = ?, licenseissuedate4 = ?, licenseexpirationdate4 = ?, licenseterm4 = ?, licensetype5 = ?, licenseissuedate5 = ?, licenseexpirationdate5 = ?, licenseterm5 = ?, licensetype6 = ?, licenseissuedate6 = ?, licenseexpirationdate6 = ?, licenseterm6 = ?, permissions = ?, role = ?, contractdays = ? WHERE id = ? AND siteID = ?";
 			$stmt->prepare($sql);
-			$stmt->bind_param("iisssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssi", $superadmin, $admin, $picturefilename, $firstname, $middlename, $lastname, $address, $city, $state, $zip, $phone, $extension, $cellphone, $email, $ss, $dob, $gender, $ethnicity, $title, $contract, $classification, $location, $grade, $subject, $doh, $sd, $ed, $rategroup, $step, $educationlevel, $salary, $hours, $probationreportdate, $statebackgroundcheck, $federalbackgroundcheck, $stateeducatorid, $licensetypeid1, $licenseissuedateid1, $licenseexpirationdateid1, $licensetermid1, $licensetypeid2, $licenseissuedateid2, $licenseexpirationdateid2, $licensetermid2, $licensetypeid3, $licenseissuedateid3, $licenseexpirationdateid3, $licensetermid3, $licensetypeid4, $licenseissuedateid4, $licenseexpirationdateid4, $licensetermid4, $licensetypeid5, $licenseissuedateid5, $licenseexpirationdateid5, $licensetermid5, $licensetypeid6, $licenseissuedateid6, $licenseexpirationdateid6, $licensetermid6, $permissions, $role, $contractdays, $id);
+			$stmt->bind_param("iisssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssii", $superadmin, $admin, $picturefilename, $firstname, $middlename, $lastname, $address, $city, $state, $zip, $phone, $extension, $cellphone, $email, $ss, $dob, $gender, $ethnicity, $title, $contract, $classification, $location, $grade, $subject, $doh, $sd, $ed, $rategroup, $step, $educationlevel, $salary, $hours, $probationreportdate, $statebackgroundcheck, $federalbackgroundcheck, $stateeducatorid, $licensetypeid1, $licenseissuedateid1, $licenseexpirationdateid1, $licensetermid1, $licensetypeid2, $licenseissuedateid2, $licenseexpirationdateid2, $licensetermid2, $licensetypeid3, $licenseissuedateid3, $licenseexpirationdateid3, $licensetermid3, $licensetypeid4, $licenseissuedateid4, $licenseexpirationdateid4, $licensetermid4, $licensetypeid5, $licenseissuedateid5, $licenseexpirationdateid5, $licensetermid5, $licensetypeid6, $licenseissuedateid6, $licenseexpirationdateid6, $licensetermid6, $permissions, $role, $contractdays, $id, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 			$db->close();
@@ -273,35 +315,38 @@
 		if($id == "new"){
 			include "../../core/abre_dbconnect.php";
 			$stmt = $db->stmt_init();
-			$sql = "INSERT INTO directory (updatedtime, superadmin, admin, picture, firstname, lastname, middlename, address, city, state, zip, email, phone, extension, cellphone, ss, dob, gender, ethnicity, title, contract, classification, location, grade, subject, doh, senioritydate, effectivedate, rategroup, step, educationlevel, salary, hours, probationreportdate, statebackgroundcheck, federalbackgroundcheck, stateeducatorid, licensetype1, licenseissuedate1, licenseexpirationdate1, licenseterm1, licensetype2, licenseissuedate2, licenseexpirationdate2, licenseterm2, licensetype3, licenseissuedate3, licenseexpirationdate3, licenseterm3, licensetype4, licenseissuedate4, licenseexpirationdate4, licenseterm4, licensetype5, licenseissuedate5, licenseexpirationdate5, licenseterm5, licensetype6, licenseissuedate6, licenseexpirationdate6, licenseterm6, permissions, role, contractdays) VALUES (CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+			$sql = "INSERT INTO directory (updatedtime, superadmin, admin, picture, firstname, lastname, middlename, address, city, state, zip, email, phone, extension, cellphone, ss, dob, gender, ethnicity, title, contract, classification, location, grade, subject, doh, senioritydate, effectivedate, rategroup, step, educationlevel, salary, hours, probationreportdate, statebackgroundcheck, federalbackgroundcheck, stateeducatorid, licensetype1, licenseissuedate1, licenseexpirationdate1, licenseterm1, licensetype2, licenseissuedate2, licenseexpirationdate2, licenseterm2, licensetype3, licenseissuedate3, licenseexpirationdate3, licenseterm3, licensetype4, licenseissuedate4, licenseexpirationdate4, licenseterm4, licensetype5, licenseissuedate5, licenseexpirationdate5, licenseterm5, licensetype6, licenseissuedate6, licenseexpirationdate6, licenseterm6, permissions, role, contractdays, siteID) VALUES (CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 			$stmt->prepare($sql);
-			$stmt->bind_param("iisssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", $superadmin, $admin, $picturefilename, $firstname, $lastname, $middlename, $address, $city, $state, $zip, $email, $phone, $extension, $cellphone, $ss, $dob, $gender, $ethnicity, $title, $contract, $classification, $location, $grade, $subject, $doh, $sd, $ed, $rategroup, $step, $educationlevel, $salary, $hours, $probationreportdate, $statebackgroundcheck, $federalbackgroundcheck, $stateeducatorid, $licensetypeid1, $licenseissuedateid1, $licenseexpirationdateid1, $licensetermid1, $licensetypeid2, $licenseissuedateid2, $licenseexpirationdateid2, $licensetermid2, $licensetypeid3, $licenseissuedateid3, $licenseexpirationdateid3, $licensetermid3, $licensetypeid4, $licenseissuedateid4, $licenseexpirationdateid4, $licensetermid4, $licensetypeid5, $licenseissuedateid5, $licenseexpirationdateid5, $licensetermid5, $licensetypeid6, $licenseissuedateid6, $licenseexpirationdateid6, $licensetermid6, $permissions, $role, $contractdays);
+			$stmt->bind_param("iisssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssi", $superadmin, $admin, $picturefilename, $firstname, $lastname, $middlename, $address, $city, $state, $zip, $email, $phone, $extension, $cellphone, $ss, $dob, $gender, $ethnicity, $title, $contract, $classification, $location, $grade, $subject, $doh, $sd, $ed, $rategroup, $step, $educationlevel, $salary, $hours, $probationreportdate, $statebackgroundcheck, $federalbackgroundcheck, $stateeducatorid, $licensetypeid1, $licenseissuedateid1, $licenseexpirationdateid1, $licensetermid1, $licensetypeid2, $licenseissuedateid2, $licenseexpirationdateid2, $licensetermid2, $licensetypeid3, $licenseissuedateid3, $licenseexpirationdateid3, $licensetermid3, $licensetypeid4, $licenseissuedateid4, $licenseexpirationdateid4, $licensetermid4, $licensetypeid5, $licenseissuedateid5, $licenseexpirationdateid5, $licensetermid5, $licensetypeid6, $licenseissuedateid6, $licenseexpirationdateid6, $licensetermid6, $permissions, $role, $contractdays, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 			$db->close();
 		}
 
 		include "../../core/abre_dbconnect.php";
-		$sql = "SELECT COUNT(*) FROM users WHERE email = '$email'";
-		$result = $db->query($sql);
-		$resultrow = $result->fetch_assoc();
-		$rowcount = $resultrow["COUNT(*)"];
+		$sql = "SELECT COUNT(*) FROM users WHERE email = ? AND siteID = ?";
+		$stmt = $db->stmt_init();
+		$stmt->prepare($sql);
+		$stmt->bind_param("si", $email, $_SESSION['siteID']);
+		$stmt->execute();
+		$stmt->bind_result($rowcount);
+		$stmt->fetch();
 
 		if($rowcount == 0){
 			include "../../core/abre_dbconnect.php";
 			$stmt = $db->stmt_init();
-			$sql = "INSERT INTO users (email, admin) VALUES (?, ?);";
+			$sql = "INSERT INTO users (email, admin, siteID) VALUES (?, ?, ?);";
 			$stmt->prepare($sql);
-			$stmt->bind_param("si", $email, $sysadmin);
+			$stmt->bind_param("sii", $email, $sysadmin, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 			$db->close();
 		}else{
 			include "../../core/abre_dbconnect.php";
 			$stmt = $db->stmt_init();
-			$sql = "UPDATE users SET admin = ? WHERE email = ?;";
+			$sql = "UPDATE users SET admin = ? WHERE email = ? AND siteID = ?;";
 			$stmt->prepare($sql);
-			$stmt->bind_param("is", $sysadmin, $email);
+			$stmt->bind_param("isi", $sysadmin, $email, $_SESSION['siteID']);
 			$stmt->execute();
 			$stmt->close();
 			$db->close();

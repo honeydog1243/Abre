@@ -17,7 +17,7 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once('permissions.php');
 
@@ -26,9 +26,9 @@
 		include "../../core/abre_dbconnect.php";
 		$id = $_GET["id"];
 		$stmt = $db->stmt_init();
-		$sql = "UPDATE directory SET archived = '0' WHERE id = ? LIMIT 1";
+		$sql = "UPDATE directory SET archived = '0' WHERE id = ? AND siteID = ? LIMIT 1";
 		$stmt->prepare($sql);
-		$stmt->bind_param("i", $id);
+		$stmt->bind_param("ii", $id, $_SESSION['siteID']);
 		$stmt->execute();
 		$stmt->close();
 		$db->close();

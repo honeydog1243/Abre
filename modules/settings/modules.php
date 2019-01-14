@@ -17,14 +17,14 @@
     */
 
     //Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
 	require(dirname(__FILE__) . '/../../core/abre_version.php');
 
 	//Streams
-	$sql = "SELECT * FROM users WHERE email = '".$_SESSION['useremail']."' and superadmin = 1";
+	$sql = "SELECT * FROM users WHERE email = '".$_SESSION['escapedemail']."' and superadmin = 1";
 	$result = $db->query($sql);
 	while($row = $result->fetch_assoc()){
 		echo "<div class='page_container page_container_limit mdl-shadow--4dp'>";

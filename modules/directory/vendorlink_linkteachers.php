@@ -17,9 +17,9 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require(dirname(__FILE__) . '/../../core/abre_dbconnect.php');
-	require(dirname(__FILE__) . '/../../core/abre_functions.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 
 	$VendorLinkURL = getSiteVendorLinkUrl();
 	$json = vendorLinkGet("$VendorLinkURL/GBService/HA/teacher");
@@ -40,9 +40,9 @@
 
 					//Add information to employee database
 					$stmt = $db->stmt_init();
-					$sql = "UPDATE directory SET RefID = ?, StateID = ?, TeacherID = ?, LocalId = ? WHERE email = ?";
+					$sql = "UPDATE directory SET RefID = ?, StateID = ?, TeacherID = ?, LocalId = ? WHERE email = ? AND siteID = ?";
 					$stmt->prepare($sql);
-					$stmt->bind_param("sssss", $employeeRefID, $employeeStateID, $employeeTeacherID, $employeeLocalId, $employeeemailencrypted);
+					$stmt->bind_param("sssssi", $employeeRefID, $employeeStateID, $employeeTeacherID, $employeeLocalId, $employeeemailencrypted, $_SESSION['siteID']);
 					$stmt->execute();
 					$stmt->close();
 					$db->close();

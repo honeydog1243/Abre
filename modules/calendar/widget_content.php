@@ -29,6 +29,7 @@
 				if(isset($_SESSION['access_token']) && $_SESSION['access_token']){ $client->setAccessToken($_SESSION['access_token']); }
 
 				//Set Calendar Parameters
+				date_default_timezone_set('US/Eastern');
 				$rightNow = date('c');
 				$inOneDay = date('c', strtotime('+1 days'));
 				$inTwoDays = date('c', strtotime('+2 days'));
@@ -100,6 +101,7 @@
 				}
 
 				//Set Calendar Parameters
+				date_default_timezone_set('US/Eastern');
 				$rightNow = urlencode(date('c'));
 				$inOneDay = urlencode(date('c', strtotime('+1 days')));
 

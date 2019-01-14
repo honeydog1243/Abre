@@ -17,15 +17,17 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
+
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
 	require_once('permissions.php');
+	$portal_root = getConfigPortalRoot();
 
 	if($pageaccess == 1){
 		if($_GET["id"] != ""){ $id = $_GET["id"]; }
 
 			include "../../core/abre_dbconnect.php";
-			$sqlcount = "SELECT COUNT(*) FROM directory_discipline WHERE UserID = $id AND archived = 0";
+			$sqlcount = "SELECT COUNT(*) FROM directory_discipline WHERE UserID = $id AND archived = 0 AND siteID = '".$_SESSION['siteID']."'";
 			$result = $db->query($sqlcount);
 			$resultrow = $result->fetch_assoc();
 			$rowcount = $resultrow["COUNT(*)"];
@@ -43,7 +45,7 @@
 				echo "<tbody>";
 
 				include "../../core/abre_dbconnect.php";
-				$sql = "SELECT id, Filename FROM directory_discipline WHERE UserID = $id AND archived = 0";
+				$sql = "SELECT id, Filename FROM directory_discipline WHERE UserID = $id AND archived = 0 AND siteID = '".$_SESSION['siteID']."'";
 				$result = $db->query($sql);
 				while($row = $result->fetch_assoc()){
 					$fileid = htmlspecialchars($row["id"], ENT_QUOTES);

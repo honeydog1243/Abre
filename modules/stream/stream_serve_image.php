@@ -17,11 +17,13 @@
     */
 
 	//Required configuration files
-	require(dirname(__FILE__) . '/../../configuration.php');
 	require_once(dirname(__FILE__) . '/../../core/abre_verification.php');
+	require_once(dirname(__FILE__) . '/../../core/abre_functions.php');
+	$portal_private_root = getConfigPortalPrivateRoot();
+	$portal_path_root = getConfigPortalPathRoot();
 
-	$cloudsetting=constant("USE_GOOGLE_CLOUD");
-	if ($cloudsetting=="true") 
+	$cloudsetting = getenv("USE_GOOGLE_CLOUD");
+	if ($cloudsetting=="true")
 		require(dirname(__FILE__). '/../../vendor/autoload.php');
 	use Google\Cloud\Storage\StorageClient;
 
@@ -40,16 +42,21 @@
 
 	if ($cloudsetting=="true") {
 		$storage = new StorageClient([
-			'projectId' => constant("GC_PROJECT")
-		]);	
-		$bucket = $storage->bucket(constant("GC_BUCKET"));
+			'projectId' => getenv("GC_PROJECT")
+		]);
+		$bucket = $storage->bucket(getenv("GC_BUCKET"));
+
+		if (strpos($img, 'private_html/stream/cache/images') === false) {
+			$img = "private_html/stream/cache/images/".$img;
+		}
+
 		$object = $bucket->object($img);
 		$stream = $object->downloadAsStream();
-		$img = $stream->getContents(); 
+		$img = $stream->getContents();
 	}
 	else {
 		$img = $portal_path_root."/../$portal_private_root/stream/cache/images/".$img;
-		$img = file_get_contents($img);	
+		$img = file_get_contents($img);
 	}
 
 	echo($img);
