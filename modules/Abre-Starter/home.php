@@ -26,10 +26,9 @@
 <div class='page_container mdl-shadow--4dp'>
 	<div class='page'>
 		<div class='row'>
-			
+			<body/>
+				<h1>memes</h1>
+			</body>
 		</div>
 	</div>
 </div>
-<body/>
-	<h1>memes</h1>
-</body>
