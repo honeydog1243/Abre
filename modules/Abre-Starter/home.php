@@ -31,5 +31,5 @@
 	</div>
 </div>
 <body/>
-	<text>memes</text>
+	<h1>memes</h1>
 </body>
