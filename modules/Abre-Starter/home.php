@@ -28,7 +28,12 @@
 		<div class='row'>
 		</div>
 		<body/>
-			<h1>dshgkjfefdsdw</h1>
+			<?php
+				echo "Today is " . date("Y/m/d") . "<br>";
+				echo "Today is " . date("Y.m.d") . "<br>";
+				echo "Today is " . date("Y-m-d") . "<br>";
+				echo "Today is " . date("l");
+			?>
 		</body>
 	</div>
 </div>
