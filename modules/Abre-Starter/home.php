@@ -30,7 +30,54 @@
 		<body/>
 			<iframe src="https://www.google.com/calendar/embed?showCalendars=0&height=600&wkst=1&bgcolor=%23FFFFFF&src=robotics5040%40gmail.com
 &color=%23875509&src=%23contacts%40group.v.calendar.google.com&color=%232F6309&src=en.usa%23holiday%40group.v.calendar.google.com&color=%232952A3&ctz=America%2FNew_York" 
-style=" border-width:0 " width="800" height="500" frameborder="0" scrolling="yes"></iframe>
+style=" border-width:0 " width="800" height="600" frameborder="0" scrolling="yes"></iframe>
+	
+<div class="demo-card-wide mdl-card mdl-shadow--2dp">
+  <div class="mdl-card__title">
+    <h2 class="mdl-card__title-text">Welcome</h2>
+  </div>
+  <div class="mdl-card__supporting-text">
+
+<table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+  <thead>
+    <tr>
+      <th class="mdl-data-table__cell--non-numeric">Material</th>
+      <th>Quantity</th>
+      <th>Unit price</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="mdl-data-table__cell--non-numeric">Acrylic (Transparent)</td>
+      <td>25</td>
+      <td>$2.90</td>
+    </tr>
+    <tr>
+      <td class="mdl-data-table__cell--non-numeric">Plywood (Birch)</td>
+      <td>50</td>
+      <td>$1.25</td>
+    </tr>
+    <tr>
+      <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
+      <td>10</td>
+      <td>$2.35</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+<div class="mdl-card__actions mdl-card--border">
+    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+      Get Started
+    </a>
+  </div>
+  <div class="mdl-card__menu">
+    <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+      <i class="material-icons">share</i>
+    </button>
+  </div>
+</div>
+		
 		</body>
 	</div>
 </div>
